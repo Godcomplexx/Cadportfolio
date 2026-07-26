@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f4f0e8"/>
+      <stop offset="1" stop-color="#c8d8cf"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="955" cy="280" r="235" fill="#f25a3c"/>
+  <circle cx="955" cy="280" r="135" fill="#171918"/>
+  <text x="64" y="78" font-family="Arial, sans-serif" font-size="24" letter-spacing="4" fill="#171918">DARIA MELNIKOVA</text>
+  <text x="64" y="270" font-family="Georgia, serif" font-size="100" font-weight="700" fill="#171918">3D, CAD &amp;</text>
+  <text x="64" y="380" font-family="Georgia, serif" font-size="100" font-style="italic" fill="#171918">product prototyping.</text>
+  <text x="68" y="538" font-family="Arial, sans-serif" font-size="26" fill="#171918">Compact devices · physical interfaces · visual product stories</text>
+</svg>
