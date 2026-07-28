@@ -64,6 +64,7 @@ export function MotionSystem() {
       gsap.registerPlugin(window.ScrollTrigger);
       if (!document.documentElement.classList.contains("no-motion")) {
         gsap.utils.toArray<Element>("[data-depth]").forEach((layer) => {
+          if (layer.hasAttribute("data-fog-layer")) return;
           const depth = Number(layer.getAttribute("data-depth") ?? 4);
           if (depth === 4) return;
           const factor = [0.08, 0.15, 0.25, 0.34, 0, 0.42][depth] ?? 0.15;
@@ -78,6 +79,83 @@ export function MotionSystem() {
             },
           });
         });
+
+        const fogMotion = {
+          wash: {
+            from: { yPercent: -3, scale: 0.98, opacity: 0.72 },
+            to: { yPercent: 4, scale: 1.04, opacity: 1 },
+          },
+          back: {
+            from: { yPercent: -12, scale: 0.9, opacity: 0.24 },
+            to: { yPercent: 14, scale: 1.12, opacity: 0.7 },
+          },
+          middle: {
+            from: { yPercent: 8, scale: 0.96, opacity: 0.36 },
+            to: { yPercent: -12, scale: 1.1, opacity: 0.62 },
+          },
+          front: {
+            from: { yPercent: 16, scale: 1.02, opacity: 0.82 },
+            to: { yPercent: -20, scale: 1.2, opacity: 0.12 },
+          },
+        } as const;
+
+        gsap.utils.toArray<Element>("[data-fog-layer]").forEach((layer) => {
+          const key = layer.getAttribute(
+            "data-fog-layer",
+          ) as keyof typeof fogMotion;
+          const motion = fogMotion[key];
+          if (!motion) return;
+
+          gsap.fromTo(layer, motion.from, {
+            ...motion.to,
+            ease: "none",
+            scrollTrigger: {
+              trigger: layer.closest(".home-fog-transition") ?? layer,
+              start: "top 92%",
+              end: "bottom top",
+              scrub: 1.15,
+            },
+          });
+        });
+
+        const about = document.querySelector(".home-about");
+        const aboutCopy = about?.querySelector(".home-about__copy");
+        const aboutCards = about?.querySelector(".home-about__cards");
+
+        if (about && aboutCopy) {
+          gsap.fromTo(
+            aboutCopy,
+            { y: 72, opacity: 0 },
+            {
+              y: 0,
+              opacity: 1,
+              ease: "none",
+              scrollTrigger: {
+                trigger: about,
+                start: "top 88%",
+                end: "top 38%",
+                scrub: 0.9,
+              },
+            },
+          );
+        }
+
+        if (about && aboutCards) {
+          gsap.fromTo(
+            aboutCards,
+            { opacity: 0.08 },
+            {
+              opacity: 1,
+              ease: "none",
+              scrollTrigger: {
+                trigger: about,
+                start: "top 78%",
+                end: "top 28%",
+                scrub: 0.9,
+              },
+            },
+          );
+        }
       }
     };
     initGsap();

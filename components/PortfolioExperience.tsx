@@ -434,23 +434,37 @@ export function PortfolioExperience() {
           </div>
         </section>
 
-        <div className="home-marquee" aria-label="Core disciplines">
-          <div className="home-marquee__track" aria-hidden="true">
-            <span>CAD &amp; MECHANICAL DESIGN</span>
-            <i />
-            <span>3D VISUALIZATION &amp; MOTION</span>
-            <i />
-            <span>HARDWARE PROTOTYPING</span>
-            <i />
-            <span>3D RECONSTRUCTION</span>
-            <i />
-            <span>CAD &amp; MECHANICAL DESIGN</span>
-            <i />
-            <span>3D VISUALIZATION &amp; MOTION</span>
-            <i />
-            <span>HARDWARE PROTOTYPING</span>
-            <i />
-            <span>3D RECONSTRUCTION</span>
+        <div className="home-fog-transition" aria-hidden="true">
+          <div
+            className="home-fog-transition__wash depth-0"
+            data-depth="0"
+            data-fog-layer="wash"
+          />
+          <div
+            className="home-fog-transition__clouds home-fog-transition__clouds--back depth-1"
+            data-depth="1"
+            data-fog-layer="back"
+          >
+            <span />
+            <span />
+            <span />
+          </div>
+          <div
+            className="home-fog-transition__clouds home-fog-transition__clouds--middle depth-2"
+            data-depth="2"
+            data-fog-layer="middle"
+          >
+            <span />
+            <span />
+            <span />
+          </div>
+          <div
+            className="home-fog-transition__clouds home-fog-transition__clouds--front depth-5"
+            data-depth="5"
+            data-fog-layer="front"
+          >
+            <span />
+            <span />
           </div>
         </div>
 
@@ -501,6 +515,26 @@ export function PortfolioExperience() {
             <i />
           </div>
         </section>
+
+        <div className="home-marquee" aria-label="Core disciplines">
+          <div className="home-marquee__track" aria-hidden="true">
+            <span>CAD &amp; MECHANICAL DESIGN</span>
+            <i />
+            <span>3D VISUALIZATION &amp; MOTION</span>
+            <i />
+            <span>HARDWARE PROTOTYPING</span>
+            <i />
+            <span>3D RECONSTRUCTION</span>
+            <i />
+            <span>CAD &amp; MECHANICAL DESIGN</span>
+            <i />
+            <span>3D VISUALIZATION &amp; MOTION</span>
+            <i />
+            <span>HARDWARE PROTOTYPING</span>
+            <i />
+            <span>3D RECONSTRUCTION</span>
+          </div>
+        </div>
 
         <section className="scene home-bridge" aria-labelledby="home-bridge-title">
           <div className="home-bridge__wash depth-0" data-depth="0" aria-hidden="true" />

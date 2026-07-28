@@ -7969,3 +7969,242 @@ html.no-motion .cad-hero__foreground span,
 html.no-motion .cad-hero__foreground i {
   animation: none !important;
 }
+
+/* Volumetric fog bridge — continuous hero-to-about scroll transition */
+body:has(.portfolio-home) {
+  --home-fog-base: #cec7ef;
+  background: var(--home-fog-base);
+}
+
+.portfolio-home {
+  background: var(--home-fog-base);
+}
+
+.home-hero.cad-hero {
+  margin-bottom: 0;
+}
+
+.home-fog-transition {
+  position: relative;
+  z-index: 10;
+  min-height: clamp(34rem, 82svh, 62rem);
+  margin-top: clamp(-11rem, -13vh, -6rem);
+  margin-bottom: -1px;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(
+    180deg,
+    rgba(206, 199, 239, 0) 0%,
+    rgba(206, 199, 239, 0.74) 22%,
+    var(--home-fog-base) 58%,
+    var(--home-fog-base) 100%
+  );
+  pointer-events: none;
+}
+
+.home-fog-transition::after {
+  position: absolute;
+  z-index: 6;
+  inset: 0;
+  content: "";
+  opacity: 0.26;
+  background:
+    linear-gradient(180deg, transparent 0 34%, rgba(255, 255, 255, 0.24) 57%, transparent 82%),
+    radial-gradient(ellipse at 50% 55%, rgba(243, 239, 255, 0.3), transparent 66%);
+  mix-blend-mode: soft-light;
+}
+
+.home-fog-transition__wash,
+.home-fog-transition__clouds {
+  position: absolute;
+  inset: -12% -8%;
+  transform-origin: center;
+}
+
+.home-fog-transition__wash {
+  background:
+    radial-gradient(ellipse at 18% 37%, rgba(218, 239, 255, 0.42), transparent 41%),
+    radial-gradient(ellipse at 78% 44%, rgba(239, 226, 255, 0.5), transparent 43%),
+    linear-gradient(180deg, rgba(135, 177, 247, 0.06), var(--home-fog-base) 66%);
+}
+
+.home-fog-transition__clouds span {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 21% 61%, rgba(252, 250, 255, 0.58) 0 15%, transparent 45%),
+    radial-gradient(ellipse at 46% 44%, rgba(218, 234, 255, 0.56) 0 22%, transparent 52%),
+    radial-gradient(ellipse at 76% 62%, rgba(236, 221, 255, 0.52) 0 18%, transparent 48%);
+  transform: translateZ(0);
+}
+
+.home-fog-transition__clouds--back {
+  opacity: 0.34;
+  filter: blur(52px);
+  mask-image: linear-gradient(to bottom, transparent, #000 15%, #000 58%, transparent 84%);
+}
+
+.home-fog-transition__clouds--back span:first-child {
+  top: 2%;
+  left: -9%;
+  width: 69vw;
+  height: 31vw;
+  transform: rotate(-7deg);
+}
+
+.home-fog-transition__clouds--back span:nth-child(2) {
+  top: 14%;
+  right: -14%;
+  width: 72vw;
+  height: 34vw;
+  transform: rotate(8deg) scaleX(-1);
+}
+
+.home-fog-transition__clouds--back span:nth-child(3) {
+  right: 12%;
+  bottom: -2%;
+  width: 62vw;
+  height: 27vw;
+  opacity: 0.68;
+}
+
+.home-fog-transition__clouds--middle {
+  opacity: 0.58;
+  filter: blur(30px);
+  mask-image: linear-gradient(to bottom, transparent 2%, #000 17%, #000 57%, transparent 82%);
+}
+
+.home-fog-transition__clouds--middle span:first-child {
+  top: 20%;
+  left: -17%;
+  width: 63vw;
+  height: 28vw;
+  transform: rotate(5deg);
+}
+
+.home-fog-transition__clouds--middle span:nth-child(2) {
+  top: 4%;
+  left: 28%;
+  width: 58vw;
+  height: 25vw;
+  opacity: 0.72;
+  transform: rotate(-4deg);
+}
+
+.home-fog-transition__clouds--middle span:nth-child(3) {
+  right: -13%;
+  bottom: 7%;
+  width: 68vw;
+  height: 29vw;
+  transform: rotate(9deg) scaleX(-1);
+}
+
+.home-fog-transition__clouds--front {
+  opacity: 0.62;
+  filter: blur(36px);
+  mask-image: linear-gradient(to bottom, transparent 5%, #000 22%, #000 52%, transparent 76%);
+}
+
+.home-fog-transition__clouds--front span:first-child {
+  bottom: -9%;
+  left: -18%;
+  width: 81vw;
+  height: 33vw;
+  transform: rotate(-4deg);
+}
+
+.home-fog-transition__clouds--front span:nth-child(2) {
+  right: -18%;
+  bottom: -14%;
+  width: 82vw;
+  height: 35vw;
+  transform: rotate(6deg) scaleX(-1);
+}
+
+.home-about {
+  margin-top: -1px;
+  background: var(--home-fog-base);
+  color: #20214c;
+}
+
+.home-about__wash {
+  background:
+    radial-gradient(circle at 76% 28%, rgba(255, 241, 251, 0.44), transparent 29rem),
+    radial-gradient(circle at 18% 76%, rgba(181, 218, 255, 0.32), transparent 31rem),
+    linear-gradient(180deg, var(--home-fog-base), #d8d3f3 74%, #e5def1);
+}
+
+.home-about__copy > p:not(.home-section-kicker) {
+  color: rgba(32, 33, 76, 0.76);
+}
+
+.home-about__copy,
+.home-about__cards {
+  opacity: 1;
+}
+
+@media (max-width: 820px) {
+  .home-fog-transition {
+    min-height: clamp(28rem, 66svh, 40rem);
+    margin-top: -7rem;
+  }
+
+  .home-fog-transition__clouds {
+    inset: -8% -22%;
+  }
+
+  .home-fog-transition__clouds--back {
+    filter: blur(42px);
+  }
+
+  .home-fog-transition__clouds--middle {
+    filter: blur(28px);
+  }
+
+  .home-fog-transition__clouds--front {
+    filter: blur(34px);
+  }
+
+  .home-fog-transition__clouds--back span,
+  .home-fog-transition__clouds--middle span,
+  .home-fog-transition__clouds--front span {
+    min-width: 36rem;
+    min-height: 17rem;
+  }
+
+  .home-fog-transition__clouds--back span:nth-child(3),
+  .home-fog-transition__clouds--middle span:nth-child(2) {
+    display: none;
+  }
+
+  .home-about {
+    padding-top: 5rem;
+  }
+}
+
+html.perf-lite .home-fog-transition__clouds--back span:nth-child(3),
+html.perf-lite .home-fog-transition__clouds--middle span:nth-child(2),
+html.perf-lite .home-fog-transition__clouds--front span:nth-child(2) {
+  display: none;
+}
+
+html.no-motion .home-fog-transition [data-fog-layer],
+html.no-motion .home-about__copy,
+html.no-motion .home-about__cards {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-fog-transition {
+    min-height: 46svh;
+  }
+
+  .home-fog-transition [data-fog-layer],
+  .home-about__copy,
+  .home-about__cards {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
