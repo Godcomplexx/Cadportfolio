@@ -12,6 +12,8 @@ import { LikeButton } from "@/components/LikeButton";
 import { projects } from "@/lib/projects";
 
 const sceneNames = ["Intro", "Motion", "System", "Wearable", "Scan"];
+const cvUrl =
+  "https://godcomplexx.github.io/portfolio/resume/daria_melnikova_resume_print.html";
 
 const speckles = Array.from({ length: 28 }, (_, index) => ({
   left: `${9 + ((index * 31) % 82)}%`,
@@ -234,21 +236,26 @@ export function PortfolioExperience() {
             <article
               className={`lab-panel lab-panel--intro${activeScene === 0 ? " is-active" : ""}`}
               aria-hidden={activeScene !== 0}
+              inert={activeScene !== 0}
             >
-              <p className="lab-kicker">Daria Melnikova · 3D / CAD / prototyping</p>
+              <p className="lab-kicker">
+                Daria Melnikova · 3D, CAD &amp; Product Prototyping
+              </p>
               <h1>
                 Physical ideas,
                 <em>made visible.</em>
               </h1>
               <p className="lab-lead">
-                I design compact products, build CAD systems and create visual
-                stories that explain how an object works.
+                I design compact physical products and turn ideas into CAD
+                models, visual stories and working prototypes.
               </p>
               <div className="lab-actions">
                 <button type="button" onClick={() => scrollToScene(1)}>
                   Enter the archive <span>↓</span>
                 </button>
-                <Link href="/about">About my practice ↗</Link>
+                <a href={cvUrl} target="_blank" rel="noreferrer">
+                  View current CV ↗
+                </a>
               </div>
             </article>
 
@@ -260,6 +267,7 @@ export function PortfolioExperience() {
                     activeScene === sceneIndex ? " is-active" : ""
                   }`}
                   aria-hidden={activeScene !== sceneIndex}
+                  inert={activeScene !== sceneIndex}
                   key={project.key}
                 >
                   <p className="lab-kicker">
