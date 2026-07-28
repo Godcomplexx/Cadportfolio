@@ -1,3 +1,27 @@
+@font-face {
+  font-family: "STIX Two Text";
+  src: url("/fonts/stix-two-text-500.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/ibm-plex-mono-600.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/ibm-plex-mono-700.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --paper: #f3efe7;
   --paper-deep: #e7e0d5;
@@ -6915,5 +6939,486 @@ html.perf-lite .project-device__visual--scan i {
   .archive-console,
   .printed-cv {
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Original 3D Lab intro — isolated for the portfolio home hero */
+body:has(.portfolio-home) .site-header {
+  position: absolute;
+  z-index: 120;
+  top: 20px;
+  right: 24px;
+  left: 24px;
+  width: auto;
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #2f3842;
+  backdrop-filter: none;
+}
+
+body:has(.portfolio-home) .wordmark,
+body:has(.portfolio-home) .site-navigation,
+body:has(.portfolio-home) .header-status {
+  border: 1px solid rgba(215, 221, 226, 0.82);
+  background: rgba(247, 247, 244, 0.82);
+  box-shadow: 0 9px 24px rgba(5, 8, 7, 0.16);
+  backdrop-filter: blur(14px) saturate(125%);
+}
+
+body:has(.portfolio-home) .wordmark {
+  min-height: 44px;
+  padding: 0.45rem 1.05rem 0.45rem 0.55rem;
+  border-radius: 999px;
+  color: #2f3842;
+  font-family: "IBM Plex Mono", var(--mono);
+}
+
+body:has(.portfolio-home) .wordmark::before {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  content: "<";
+  border: 1px solid rgba(200, 209, 219, 0.9);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.96);
+  color: #565e7d;
+  font-size: 0.75rem;
+}
+
+body:has(.portfolio-home) .wordmark span {
+  color: #66707b;
+}
+
+body:has(.portfolio-home) .site-navigation {
+  gap: 0;
+  padding: 4px;
+  border-radius: 999px;
+}
+
+body:has(.portfolio-home) .site-navigation a {
+  min-height: 38px;
+  padding: 0 0.9rem;
+  border-radius: 999px;
+  color: #4d555e;
+  font-family: "IBM Plex Mono", var(--mono);
+  font-size: 0.69rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+body:has(.portfolio-home) .site-navigation a:hover {
+  background: rgba(255, 255, 255, 0.75);
+  color: #171b20;
+}
+
+body:has(.portfolio-home) .site-navigation a::after {
+  display: none;
+}
+
+body:has(.portfolio-home) .header-status {
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: 999px;
+  color: #48515a;
+  font-family: "IBM Plex Mono", var(--mono);
+}
+
+body:has(.portfolio-home) .header-status span {
+  background: #aaca46;
+  box-shadow: 0 0 0 5px rgba(184, 218, 80, 0.14);
+}
+
+body:has(.portfolio-home) .motion-toggle {
+  top: 79px;
+  border-color: rgba(215, 221, 226, 0.72);
+  background: rgba(247, 247, 244, 0.82);
+  color: #36404b;
+  backdrop-filter: blur(12px);
+}
+
+.home-hero.cad-hero {
+  position: relative;
+  min-height: 100svh;
+  isolation: isolate;
+  overflow: hidden;
+  background: #0c0a0a;
+  color: #f7f2e8;
+}
+
+.cad-hero__scene {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+}
+
+.cad-hero-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 69% 47%, rgba(197, 224, 120, 0.08), transparent 24rem),
+    #0c0a0a;
+}
+
+.cad-hero-scene__canvas {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 700ms ease;
+}
+
+.cad-hero-scene--ready .cad-hero-scene__canvas,
+.cad-hero-scene--loading .cad-hero-scene__canvas {
+  opacity: 1;
+}
+
+.cad-hero-scene__scanlines {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.1;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 3px,
+    rgba(255, 255, 255, 0.045) 4px
+  );
+  mix-blend-mode: soft-light;
+}
+
+.cad-hero-scene::after {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background:
+    linear-gradient(90deg, rgba(5, 4, 4, 0.24), transparent 38%, transparent 78%, rgba(5, 4, 4, 0.16)),
+    radial-gradient(circle at center, transparent 50%, rgba(4, 3, 3, 0.2) 100%);
+}
+
+.cad-hero-scene__status {
+  position: absolute;
+  z-index: 5;
+  right: clamp(1rem, 2.2vw, 2.2rem);
+  bottom: clamp(1rem, 2vw, 2rem);
+  color: rgba(235, 237, 210, 0.56);
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: opacity 400ms ease;
+}
+
+.cad-hero-scene--ready .cad-hero-scene__status {
+  opacity: 0;
+}
+
+.cad-hero-scene__fallback {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 70%;
+  display: none;
+  width: min(26rem, 42vw);
+  aspect-ratio: 1.08;
+  transform: translate(-50%, -48%);
+  border: 1px solid rgba(220, 233, 180, 0.2);
+  border-radius: 2rem;
+  background:
+    linear-gradient(145deg, rgba(57, 61, 58, 0.88), rgba(6, 7, 7, 0.96)),
+    #131615;
+  box-shadow: 0 0 7rem rgba(194, 230, 103, 0.14);
+}
+
+.cad-hero-scene__fallback span {
+  position: absolute;
+  inset: 10% 11% 28%;
+  border: 0.9rem solid #090a0a;
+  border-radius: 1.2rem;
+  background: url("/media/cad-hero/screen.webp") center / cover;
+  filter: grayscale(0.3) brightness(0.62);
+}
+
+.cad-hero-scene__fallback i {
+  position: absolute;
+  right: 23%;
+  bottom: 11%;
+  left: 23%;
+  height: 15%;
+  border-radius: 0.7rem;
+  background: #0a0b0b;
+}
+
+.cad-hero-scene--error .cad-hero-scene__fallback {
+  display: block;
+}
+
+.cad-hero__copy {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  left: clamp(2rem, 5.4vw, 6.5rem);
+  width: min(44vw, 44rem);
+  transform: translateY(-52%);
+  pointer-events: none;
+}
+
+.cad-hero__eyebrow {
+  margin: 0 0 clamp(1.2rem, 2vh, 1.8rem);
+  color: rgba(244, 236, 224, 0.62);
+  font-family: "IBM Plex Mono", var(--mono);
+  font-size: clamp(0.58rem, 0.62vw, 0.72rem);
+  font-weight: 650;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.cad-hero__copy h1 {
+  position: relative;
+  max-width: 6.4ch;
+  margin: 0;
+  color: #f7f2e8;
+  font-family: "STIX Two Text", var(--serif);
+  font-size: clamp(4.5rem, 8vw, 8.8rem);
+  font-weight: 500;
+  letter-spacing: -0.068em;
+  line-height: 0.89;
+  text-shadow:
+    0 0 8px rgba(255, 247, 236, 0.22),
+    0 0 26px rgba(255, 247, 236, 0.1);
+}
+
+.cad-hero__copy h1::before,
+.cad-hero__copy h1::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: attr(data-text);
+  opacity: 0.08;
+  mix-blend-mode: screen;
+  white-space: pre;
+}
+
+.cad-hero__copy h1::before {
+  transform: translate3d(-0.5px, 0, 0);
+  color: #7eb1ff;
+}
+
+.cad-hero__copy h1::after {
+  transform: translate3d(0.5px, 0, 0);
+  color: #ffb080;
+}
+
+.cad-hero__copy h1 span {
+  display: block;
+  white-space: nowrap;
+}
+
+.cad-hero__subtitle {
+  margin-top: clamp(1.35rem, 2.3vh, 2rem);
+  color: rgba(244, 236, 224, 0.7);
+  font-family: "STIX Two Text", var(--serif);
+  font-size: clamp(0.96rem, 1.08vw, 1.18rem);
+  letter-spacing: -0.01em;
+  line-height: 1.38;
+}
+
+.cad-hero__scroll {
+  position: absolute;
+  z-index: 6;
+  bottom: clamp(4.6rem, 8vh, 5.2rem);
+  left: clamp(2rem, 5.4vw, 6.5rem);
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.55rem;
+  color: rgba(244, 236, 224, 0.76);
+  font-family: "STIX Two Text", var(--serif);
+  font-size: clamp(1rem, 1.2vw, 1.3rem);
+  letter-spacing: 0.03em;
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.cad-hero__scroll span {
+  font-size: 1.15em;
+}
+
+.cad-hero__scroll:hover {
+  transform: translateY(2px);
+  color: #f7f2e8;
+}
+
+.cad-hero__scroll:focus-visible {
+  outline: 2px solid #e6ff9c;
+  outline-offset: 6px;
+}
+
+@media (max-width: 1000px) {
+  .cad-hero__copy {
+    width: min(52vw, 38rem);
+  }
+
+  .cad-hero__copy h1 {
+    font-size: clamp(4.2rem, 8.8vw, 6.7rem);
+  }
+}
+
+@media (max-width: 820px) {
+  body:has(.portfolio-home) .site-header {
+    top: 14px;
+    right: 14px;
+    left: 14px;
+    grid-template-columns: 1fr auto;
+  }
+
+  body:has(.portfolio-home) .wordmark {
+    width: fit-content;
+    min-height: 44px;
+    padding-right: 0.85rem;
+    font-size: 0.65rem;
+  }
+
+  body:has(.portfolio-home) .menu-toggle {
+    display: flex;
+    min-width: 48px;
+    min-height: 44px;
+    border: 1px solid rgba(215, 221, 226, 0.82);
+    border-radius: 999px;
+    background: rgba(247, 247, 244, 0.84);
+    box-shadow: 0 9px 24px rgba(5, 8, 7, 0.16);
+    color: #2f3842;
+    backdrop-filter: blur(14px);
+  }
+
+  body:has(.portfolio-home) .site-navigation {
+    position: fixed;
+    z-index: 125;
+    top: 70px;
+    right: 14px;
+    left: 14px;
+    padding: 0.55rem 1rem 0.8rem;
+    border: 1px solid rgba(215, 221, 226, 0.82);
+    border-radius: 1.1rem;
+    background: rgba(247, 247, 244, 0.96);
+    color: #2f3842;
+  }
+
+  body:has(.portfolio-home) .site-navigation a {
+    border-color: rgba(47, 56, 66, 0.16);
+  }
+
+  body:has(.portfolio-home) .motion-toggle {
+    display: none;
+  }
+
+  .home-hero.cad-hero {
+    min-height: max(760px, 100svh);
+  }
+
+  .cad-hero__copy {
+    top: 18%;
+    left: 50%;
+    width: min(90vw, 42rem);
+    transform: translateX(-50%);
+    text-align: center;
+  }
+
+  .cad-hero__eyebrow {
+    margin-bottom: 1rem;
+  }
+
+  .cad-hero__copy h1 {
+    max-width: none;
+    font-size: clamp(3.6rem, 13.6vw, 6.4rem);
+    line-height: 0.9;
+  }
+
+  .cad-hero__copy h1 span {
+    white-space: normal;
+  }
+
+  .cad-hero__subtitle {
+    display: none;
+  }
+
+  .cad-hero__scroll {
+    bottom: 1.35rem;
+    left: 50%;
+    width: max-content;
+    max-width: calc(100vw - 2rem);
+    justify-content: center;
+    transform: translateX(-50%);
+    text-align: center;
+  }
+
+  .cad-hero__scroll:hover {
+    transform: translateX(-50%) translateY(2px);
+  }
+
+  .cad-hero-scene__status {
+    right: 50%;
+    bottom: 4.6rem;
+    width: max-content;
+    max-width: 86vw;
+    transform: translateX(50%);
+    text-align: center;
+  }
+
+  .cad-hero-scene__fallback {
+    top: 65%;
+    left: 50%;
+    width: min(22rem, 76vw);
+  }
+}
+
+@media (max-width: 480px) {
+  body:has(.portfolio-home) .wordmark {
+    gap: 0.25rem;
+  }
+
+  body:has(.portfolio-home) .wordmark::before {
+    width: 26px;
+    height: 26px;
+  }
+
+  .cad-hero__copy {
+    top: 19%;
+    width: 92vw;
+  }
+
+  .cad-hero__eyebrow {
+    max-width: 30ch;
+    margin-right: auto;
+    margin-left: auto;
+    font-size: 0.54rem;
+  }
+
+  .cad-hero__copy h1 {
+    font-size: clamp(3.15rem, 14vw, 4.2rem);
+  }
+
+  .cad-hero__scroll {
+    font-size: 0.96rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-hero-scene__canvas,
+  .cad-hero-scene__status,
+  .cad-hero__scroll {
+    transition: none;
+  }
+
+  .cad-hero__copy h1::before,
+  .cad-hero__copy h1::after,
+  .cad-hero-scene__scanlines {
+    display: none;
   }
 }

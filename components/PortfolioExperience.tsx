@@ -7,36 +7,13 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type PointerEvent as ReactPointerEvent,
 } from "react";
+import { CadHeroScene } from "@/components/CadHeroScene";
 import { LikeButton } from "@/components/LikeButton";
 import { projects, type Project } from "@/lib/projects";
 
 const cvUrl =
   "https://godcomplexx.github.io/portfolio/resume/daria_melnikova_resume_print.html";
-
-const consoleModes = [
-  {
-    code: "CAD",
-    title: "FORM / FIT",
-    note: "Enclosures around real components",
-  },
-  {
-    code: "3D",
-    title: "LIGHT / MOTION",
-    note: "Product stories with technical context",
-  },
-  {
-    code: "HW",
-    title: "SENSE / RESPOND",
-    note: "Electronics, firmware and assembly",
-  },
-  {
-    code: "REC",
-    title: "CAPTURE / CLEAN",
-    note: "Source object to usable mesh",
-  },
-] as const;
 
 const evidenceCards = [
   {
@@ -128,117 +105,6 @@ const scanDots = Array.from({ length: 32 }, (_, index) => ({
   top: `${12 + ((index * 53) % 74)}%`,
   delay: `${(index % 8) * -0.22}s`,
 }));
-
-function ArchiveConsole({
-  mode,
-  cvOpen,
-  onNextMode,
-  onToggleCv,
-  onPointerMove,
-  onPointerLeave,
-  consoleRef,
-}: {
-  mode: number;
-  cvOpen: boolean;
-  onNextMode: () => void;
-  onToggleCv: () => void;
-  onPointerMove: (event: ReactPointerEvent<HTMLDivElement>) => void;
-  onPointerLeave: () => void;
-  consoleRef: React.RefObject<HTMLDivElement | null>;
-}) {
-  const current = consoleModes[mode];
-
-  return (
-    <div className="archive-console-float">
-      <div
-        className={`archive-console archive-console--mode-${mode}`}
-        ref={consoleRef}
-        role="group"
-        aria-label="Interactive portfolio terminal"
-        onPointerMove={onPointerMove}
-        onPointerLeave={onPointerLeave}
-      >
-        <div className="archive-console__shadow" aria-hidden="true" />
-
-        <div className="archive-console__display">
-          <span className="archive-console__camera" aria-hidden="true" />
-          <button
-            className="archive-console__screen"
-            type="button"
-            aria-label={`Current view: ${current.title}. Show the next discipline`}
-            onClick={onNextMode}
-          >
-            <span className="archive-console__screen-grid" aria-hidden="true" />
-            <span className="archive-console__screen-orbit" aria-hidden="true" />
-            <span className="archive-console__screen-code">{current.code}</span>
-            <strong>{current.title}</strong>
-            <small>{current.note}</small>
-            <span className="archive-console__screen-hint">
-              press screen / {String(mode + 1).padStart(2, "0")} of 04
-            </span>
-          </button>
-          <div className="archive-console__screen-controls" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-          </div>
-        </div>
-
-        <div className="archive-console__neck" aria-hidden="true">
-          <span />
-        </div>
-
-        <div className="archive-console__deck">
-          <span className="archive-console__slot" aria-hidden="true" />
-          <button
-            className="archive-console__print-control"
-            type="button"
-            aria-expanded={cvOpen}
-            aria-controls="printed-cv"
-            onClick={onToggleCv}
-          >
-            {cvOpen ? "Retract CV" : "Print CV"}
-          </button>
-          <span className="archive-console__dial" aria-hidden="true" />
-          <span className="archive-console__keys" aria-hidden="true">
-            {Array.from({ length: 12 }, (_, index) => (
-              <i key={index} />
-            ))}
-          </span>
-        </div>
-
-        <div
-          className={`printed-cv${cvOpen ? " is-open" : ""}`}
-          id="printed-cv"
-          aria-hidden={!cvOpen}
-          inert={!cvOpen}
-        >
-          <span>DM / CURRENT CV / 2026</span>
-          <strong>Daria Melnikova</strong>
-          <p>3D · CAD · Product Prototyping</p>
-          <dl>
-            <div>
-              <dt>Focus</dt>
-              <dd>Compact physical products</dd>
-            </div>
-            <div>
-              <dt>Proof</dt>
-              <dd>CAD · motion · hardware</dd>
-            </div>
-          </dl>
-          <a href={cvUrl} target="_blank" rel="noreferrer">
-            Open printable CV ↗
-          </a>
-        </div>
-
-        <div className="archive-console__foot" aria-hidden="true">
-          <span>FORM / FUNCTION</span>
-          <i />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function EvidenceVisual({ type }: { type: (typeof evidenceCards)[number]["className"] }) {
   if (type === "cad") {
@@ -434,11 +300,7 @@ function ProjectDevice({ project, index }: { project: Project; index: number }) 
 export function PortfolioExperience() {
   const [showLoader, setShowLoader] = useState(true);
   const [loaderProgress, setLoaderProgress] = useState(0);
-  const [consoleMode, setConsoleMode] = useState(0);
-  const [cvOpen, setCvOpen] = useState(false);
   const loaderButtonRef = useRef<HTMLButtonElement>(null);
-  const consoleRef = useRef<HTMLDivElement>(null);
-  const pointerFrameRef = useRef<number | null>(null);
 
   const finishLoader = useCallback(() => {
     setLoaderProgress(100);
@@ -483,35 +345,6 @@ export function PortfolioExperience() {
     };
   }, [finishLoader]);
 
-  const handleConsolePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (
-      event.pointerType === "touch" ||
-      document.documentElement.classList.contains("no-motion")
-    ) {
-      return;
-    }
-
-    const element = consoleRef.current;
-    if (!element || pointerFrameRef.current !== null) return;
-    const rect = element.getBoundingClientRect();
-    const clientX = event.clientX;
-    const clientY = event.clientY;
-
-    pointerFrameRef.current = window.requestAnimationFrame(() => {
-      const x = (clientX - rect.left) / rect.width - 0.5;
-      const y = (clientY - rect.top) / rect.height - 0.5;
-      element.style.setProperty("--console-tilt-x", `${y * -5}deg`);
-      element.style.setProperty("--console-tilt-y", `${x * 7}deg`);
-      pointerFrameRef.current = null;
-    });
-  };
-
-  const resetConsoleTilt = () => {
-    const element = consoleRef.current;
-    element?.style.setProperty("--console-tilt-x", "0deg");
-    element?.style.setProperty("--console-tilt-y", "0deg");
-  };
-
   return (
     <div className="portfolio-home" aria-busy={showLoader}>
       {showLoader ? (
@@ -541,72 +374,42 @@ export function PortfolioExperience() {
       ) : null}
 
       <div inert={showLoader}>
-        <section className="scene home-hero" id="top" aria-labelledby="home-title">
-          <div className="home-layer home-hero__sky depth-0" data-depth="0" aria-hidden="true">
-            <span />
-          </div>
-          <div className="home-layer home-hero__glow depth-1" data-depth="1" aria-hidden="true">
-            <span />
-            <span />
-          </div>
-          <div className="home-layer home-hero__orbit depth-2" data-depth="2" aria-hidden="true">
-            <span />
-            <span />
-            <i />
+        <section
+          className="scene home-hero cad-hero"
+          id="top"
+          aria-labelledby="home-title"
+        >
+          <div className="cad-hero__scene depth-0" data-depth="0">
+            <CadHeroScene />
           </div>
 
-          <div className="home-layer home-hero__object depth-3" data-depth="3">
-            <ArchiveConsole
-              mode={consoleMode}
-              cvOpen={cvOpen}
-              onNextMode={() =>
-                setConsoleMode((current) => (current + 1) % consoleModes.length)
-              }
-              onToggleCv={() => setCvOpen((current) => !current)}
-              onPointerMove={handleConsolePointerMove}
-              onPointerLeave={resetConsoleTilt}
-              consoleRef={consoleRef}
-            />
-          </div>
-
-          <div className="home-layer home-hero__copy depth-4" data-depth="4">
-            <p className="home-hero__eyebrow">
+          <div className="cad-hero__copy depth-4" data-depth="4">
+            <p className="cad-hero__eyebrow">
               Daria Melnikova · 3D, CAD &amp; Product Prototyping
             </p>
-            <h1 id="home-title">
-              Ideas become
-              <em>objects here.</em>
+            <h1
+              id="home-title"
+              aria-label="Selected 3D Projects, Built for Real Work"
+              data-text={"Selected\n3D Projects,\nBuilt for\nReal Work"}
+            >
+              <span>Selected</span>
+              <span>3D Projects,</span>
+              <span>Built for</span>
+              <span>Real Work</span>
             </h1>
-            <p>
-              I design compact physical products and turn ideas into CAD models,
-              visual stories and working prototypes.
+            <p className="cad-hero__subtitle">
+              CAD &amp; mechanical design
+              <br />
+              / product visualization
+              <br />
+              / hardware prototyping
             </p>
-            <div className="home-hero__actions">
-              <a href="#selected-work">Explore selected work <span>↓</span></a>
-              <a href={cvUrl} target="_blank" rel="noreferrer">
-                Open current CV <span>↗</span>
-              </a>
-            </div>
           </div>
 
-          <nav className="home-mini-nav depth-4" aria-label="Homepage sections">
-            <a href="#about">About</a>
-            <a href="#selected-work">Work</a>
-            <a href="#process">Process</a>
-            <a href="#contact">Contact</a>
-          </nav>
-
-          <div className="home-layer home-hero__fx depth-5" data-depth="5" aria-hidden="true">
-            <span>COMPONENT-AWARE FORM</span>
-            <span>R&amp;D / 2026</span>
-            <i />
-            <i />
-          </div>
-
-          <p className="home-scroll-cue" aria-hidden="true">
-            <span />
-            Scroll through the archive
-          </p>
+          <a className="cad-hero__scroll depth-5" href="#selected-work">
+            Scroll to explore the portfolio.
+            <span aria-hidden="true">↓</span>
+          </a>
         </section>
 
         <div className="home-marquee" aria-label="Core disciplines">
