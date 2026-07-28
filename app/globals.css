@@ -7981,7 +7981,15 @@ body:has(.portfolio-home) {
 }
 
 .home-hero.cad-hero {
+  margin-top: 0;
   margin-bottom: 0;
+  border-top: 0;
+  border-radius: 0 0 clamp(1.8rem, 3vw, 3rem) clamp(1.8rem, 3vw, 3rem);
+}
+
+.home-hero.cad-hero::before {
+  box-shadow:
+    inset 0 -1px 0 rgba(255, 255, 255, 0.24);
 }
 
 .home-fog-transition {
