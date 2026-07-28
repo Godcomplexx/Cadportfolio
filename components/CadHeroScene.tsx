@@ -187,20 +187,14 @@ export function CadHeroScene() {
 
     const stage = new THREE.Group();
     const stageObjects = new THREE.Group();
-    const companions = new THREE.Group();
-    const accents = new THREE.Group();
     const computerGroup = new THREE.Group();
-    stage.add(stageObjects, companions, accents, computerGroup);
+    stage.add(stageObjects, computerGroup);
     scene.add(stage);
 
     const white = pastelMaterial(0xeceaff, { roughness: 0.58 });
     const lavender = pastelMaterial(0xa8b6ff);
     const deepBlue = pastelMaterial(0x276dea);
     const coral = pastelMaterial(0xff5b6e);
-    const pink = pastelMaterial(0xf55fca);
-    const green = pastelMaterial(0xa4d85f);
-    const yellow = pastelMaterial(0xffdc62);
-    const dark = pastelMaterial(0x29304d, { roughness: 0.62 });
 
     const pedestal = new THREE.Mesh(
       new RoundedBoxGeometry(10.6, 1.25, 3.6, 8, 0.22),
@@ -235,134 +229,6 @@ export function CadHeroScene() {
     );
     label.position.set(-0.1, -1.38, 1.31);
     stageObjects.add(label);
-
-    const rearBeamA = new THREE.Mesh(
-      new RoundedBoxGeometry(6.4, 0.42, 0.42, 6, 0.16),
-      pink,
-    );
-    rearBeamA.position.set(-0.35, -0.45, -1.05);
-    rearBeamA.rotation.z = 0.48;
-    rearBeamA.rotation.y = -0.1;
-    rearBeamA.castShadow = true;
-    companions.add(rearBeamA);
-
-    const rearBeamB = rearBeamA.clone();
-    rearBeamB.position.set(0.5, -0.5, -1.25);
-    rearBeamB.rotation.z = -0.4;
-    rearBeamB.scale.set(0.82, 1, 1);
-    companions.add(rearBeamB);
-
-    const mug = new THREE.Group();
-    const mugBody = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.52, 0.46, 0.95, 36),
-      coral,
-    );
-    mugBody.castShadow = true;
-    mug.add(mugBody);
-
-    const mugHandle = new THREE.Mesh(
-      new THREE.TorusGeometry(0.37, 0.1, 14, 36),
-      coral,
-    );
-    mugHandle.position.set(0.49, 0.02, 0);
-    mugHandle.rotation.y = Math.PI / 2;
-    mug.add(mugHandle);
-
-    [-0.19, 0.19].forEach((x) => {
-      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.1, 18, 14), white);
-      eye.position.set(x, 0.18, 0.43);
-      eye.scale.y = 1.18;
-      mug.add(eye);
-      const pupil = new THREE.Mesh(
-        new THREE.SphereGeometry(0.037, 12, 10),
-        dark,
-      );
-      pupil.position.set(x, 0.17, 0.515);
-      mug.add(pupil);
-    });
-    const mouth = new THREE.Mesh(
-      new THREE.SphereGeometry(0.07, 14, 10),
-      dark,
-    );
-    mouth.position.set(0, -0.18, 0.47);
-    mouth.scale.set(1, 0.45, 0.35);
-    mug.add(mouth);
-    mug.position.set(-4.15, -1.48, 0.82);
-    mug.rotation.y = 0.08;
-    mug.scale.setScalar(0.68);
-    companions.add(mug);
-
-    const apple = new THREE.Group();
-    const appleBody = new THREE.Mesh(
-      new THREE.SphereGeometry(0.58, 32, 22),
-      green,
-    );
-    appleBody.scale.set(1, 0.88, 0.96);
-    appleBody.castShadow = true;
-    apple.add(appleBody);
-    const appleStem = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.055, 0.07, 0.34, 12),
-      dark,
-    );
-    appleStem.position.set(0.05, 0.55, 0);
-    appleStem.rotation.z = -0.2;
-    apple.add(appleStem);
-    const appleLeaf = new THREE.Mesh(
-      new THREE.SphereGeometry(0.15, 16, 10),
-      green,
-    );
-    appleLeaf.position.set(0.23, 0.56, 0);
-    appleLeaf.scale.set(1.45, 0.35, 0.7);
-    appleLeaf.rotation.z = 0.45;
-    apple.add(appleLeaf);
-    apple.position.set(4.15, -1.53, 0.82);
-    apple.scale.setScalar(0.58);
-    companions.add(apple);
-
-    const noteGeometry = new RoundedBoxGeometry(0.78, 0.7, 0.06, 3, 0.03);
-    const noteA = new THREE.Mesh(noteGeometry, yellow);
-    noteA.position.set(2.35, 0.06, 1.08);
-    noteA.rotation.set(-0.05, -0.28, 0.08);
-    accents.add(noteA);
-    const noteB = new THREE.Mesh(noteGeometry, green);
-    noteB.position.set(-2.2, 2.08, 0.42);
-    noteB.rotation.set(0.06, 0.28, -0.16);
-    accents.add(noteB);
-    const noteC = new THREE.Mesh(noteGeometry, pink);
-    noteC.scale.set(0.68, 0.68, 0.68);
-    noteC.position.set(4.58, -0.42, 0.55);
-    noteC.rotation.z = 0.42;
-    accents.add(noteC);
-
-    const sparkleGeometry = new THREE.OctahedronGeometry(0.23, 0);
-    const sparklePositions = [
-      { position: [-3.15, 2.22, 0.5], color: 0x2cc5a1, scale: 1 },
-      { position: [3.82, 2.72, -0.2], color: 0xffffff, scale: 0.7 },
-      { position: [-4.8, 0.8, -0.4], color: 0xffe379, scale: 0.55 },
-    ] as const;
-    sparklePositions.forEach(({ position, color, scale }) => {
-      const sparkle = new THREE.Mesh(
-        sparkleGeometry,
-        pastelMaterial(color, { emissive: color, emissiveIntensity: 0.34 }),
-      );
-      sparkle.position.set(position[0], position[1], position[2]);
-      sparkle.scale.set(scale * 0.52, scale * 1.5, scale * 0.52);
-      sparkle.rotation.z = Math.PI / 4;
-      accents.add(sparkle);
-    });
-
-    const sideButtonA = new THREE.Mesh(
-      new THREE.SphereGeometry(0.2, 20, 16),
-      coral,
-    );
-    sideButtonA.position.set(2.78, 1.32, 0.55);
-    accents.add(sideButtonA);
-    const sideButtonB = new THREE.Mesh(
-      new THREE.SphereGeometry(0.28, 20, 16),
-      yellow,
-    );
-    sideButtonB.position.set(2.84, 0.62, 0.66);
-    accents.add(sideButtonB);
 
     const screenTexture = createScreenTexture();
     const loader = new GLTFLoader();
@@ -497,11 +363,6 @@ export function CadHeroScene() {
       computerGroup.position.y = 0.18 + Math.sin(elapsed * 0.72) * 0.055;
       computerGroup.rotation.y =
         -0.02 + Math.sin(elapsed * 0.37) * 0.012 + pointerCurrent.x * 0.018;
-      mug.position.y = -1.48 + Math.sin(elapsed * 0.82 + 1.2) * 0.025;
-      apple.position.y = -1.53 + Math.sin(elapsed * 0.76 + 2.8) * 0.03;
-      accents.children.forEach((object, index) => {
-        object.rotation.y += 0.0015 + index * 0.00008;
-      });
 
       renderScene();
       animationFrame = window.requestAnimationFrame(animate);
@@ -541,8 +402,6 @@ export function CadHeroScene() {
       camera.lookAt(0, mobile ? -0.45 : -0.35, 0);
       camera.updateProjectionMatrix();
 
-      companions.visible = !mobile;
-      accents.visible = !mobile;
       stage.scale.setScalar(mobile ? 0.68 : 1);
       pedestal.scale.x = mobile ? 0.58 : 1;
       deck.scale.x = mobile ? 0.78 : 1;
