@@ -379,37 +379,59 @@ export function PortfolioExperience() {
           id="top"
           aria-labelledby="home-title"
         >
-          <div className="cad-hero__scene depth-0" data-depth="0">
+          <div
+            className="cad-hero__background depth-0"
+            data-depth="0"
+            aria-hidden="true"
+          >
+            <p>CAD · PRODUCT · PROTOTYPING</p>
+          </div>
+
+          <div
+            className="cad-hero__atmosphere depth-1"
+            data-depth="1"
+            aria-hidden="true"
+          >
+            <span />
+            <span />
+            <i />
+          </div>
+
+          <div className="cad-hero__scene depth-3" data-depth="3">
             <CadHeroScene />
           </div>
 
-          <div className="cad-hero__copy depth-4" data-depth="4">
-            <p className="cad-hero__eyebrow">
-              Daria Melnikova · 3D, CAD &amp; Product Prototyping
-            </p>
-            <h1
-              id="home-title"
-              aria-label="Selected 3D Projects, Built for Real Work"
-              data-text={"Selected\n3D Projects,\nBuilt for\nReal Work"}
-            >
-              <span>Selected</span>
-              <span>3D Projects,</span>
-              <span>Built for</span>
-              <span>Real Work</span>
-            </h1>
-            <p className="cad-hero__subtitle">
-              CAD &amp; mechanical design
+          <div className="cad-hero__intro depth-4" data-depth="4">
+            <p>Hi, I&apos;m</p>
+            <h1 id="home-title">Daria</h1>
+            <p>
+              A 3D, CAD &amp; product prototyping designer
               <br />
-              / product visualization
-              <br />
-              / hardware prototyping
+              turning compact ideas into working objects.
             </p>
           </div>
 
-          <a className="cad-hero__scroll depth-5" href="#selected-work">
-            Scroll to explore the portfolio.
-            <span aria-hidden="true">↓</span>
-          </a>
+          <nav className="cad-hero__nav depth-4" aria-label="Hero navigation">
+            <a href="#top" aria-current="page">Home</a>
+            <a href="#selected-work">Works</a>
+            <Link href="/about">About me</Link>
+            <a href={cvUrl} target="_blank" rel="noreferrer">Resume</a>
+          </nav>
+
+          <p className="cad-hero__badge depth-4">
+            <span aria-hidden="true" />
+            Available for work
+          </p>
+
+          <div
+            className="cad-hero__foreground depth-5"
+            data-depth="5"
+            aria-hidden="true"
+          >
+            <span />
+            <span />
+            <i />
+          </div>
         </section>
 
         <div className="home-marquee" aria-label="Core disciplines">
