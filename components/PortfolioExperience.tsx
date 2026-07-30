@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "vinext/shims/link";
 import {
   useCallback,
   useEffect,
@@ -282,9 +281,9 @@ function ProjectDevice({ project, index }: { project: Project; index: number }) 
           ))}
         </ul>
         <div className="home-project__actions">
-          <Link href={`/work/${project.key}`}>
-            Open case study <span aria-hidden="true">↗</span>
-          </Link>
+          <a href="#contact">
+            Discuss this project <span aria-hidden="true">↓</span>
+          </a>
           <LikeButton project={project.key} projectName={project.title} />
         </div>
       </div>
@@ -300,6 +299,8 @@ function ProjectDevice({ project, index }: { project: Project; index: number }) 
 export function PortfolioExperience() {
   const [showLoader, setShowLoader] = useState(true);
   const [loaderProgress, setLoaderProgress] = useState(0);
+  const [activeSection, setActiveSection] =
+    useState<"home" | "about" | "works" | "contact">("home");
   const loaderButtonRef = useRef<HTMLButtonElement>(null);
 
   const finishLoader = useCallback(() => {
@@ -345,6 +346,40 @@ export function PortfolioExperience() {
     };
   }, [finishLoader]);
 
+  useEffect(() => {
+    const updateActiveSection = () => {
+      const about = document.getElementById("about");
+      const selectedWork = document.getElementById("selected-work");
+      const contact = document.getElementById("contact");
+
+      if (!about || !selectedWork || !contact) return;
+
+      const aboutStart = about.getBoundingClientRect().top + window.scrollY;
+      const worksStart = selectedWork.getBoundingClientRect().top + window.scrollY;
+      const contactStart = contact.getBoundingClientRect().top + window.scrollY;
+      const currentPosition = window.scrollY + window.innerHeight * 0.32;
+
+      if (currentPosition >= contactStart) {
+        setActiveSection("contact");
+      } else if (currentPosition >= aboutStart) {
+        setActiveSection("about");
+      } else if (currentPosition >= worksStart) {
+        setActiveSection("works");
+      } else {
+        setActiveSection("home");
+      }
+    };
+
+    updateActiveSection();
+    window.addEventListener("scroll", updateActiveSection, { passive: true });
+    window.addEventListener("resize", updateActiveSection);
+
+    return () => {
+      window.removeEventListener("scroll", updateActiveSection);
+      window.removeEventListener("resize", updateActiveSection);
+    };
+  }, []);
+
   return (
     <div className="portfolio-home" aria-busy={showLoader}>
       {showLoader ? (
@@ -374,6 +409,40 @@ export function PortfolioExperience() {
       ) : null}
 
       <div inert={showLoader}>
+        <nav className="cad-hero__nav depth-4" aria-label="Hero navigation">
+          <a
+            href="#top"
+            aria-current={activeSection === "home" ? "location" : undefined}
+            onClick={() => setActiveSection("home")}
+          >
+            Home
+          </a>
+          <a
+            href="#selected-work"
+            aria-current={activeSection === "works" ? "location" : undefined}
+            onClick={() => setActiveSection("works")}
+          >
+            Works
+          </a>
+          <a
+            href="#about"
+            aria-current={activeSection === "about" ? "location" : undefined}
+            onClick={() => setActiveSection("about")}
+          >
+            About me
+          </a>
+          <a
+            href="#contact"
+            aria-current={activeSection === "contact" ? "location" : undefined}
+            onClick={() => setActiveSection("contact")}
+          >
+            Contact
+          </a>
+          <a href={cvUrl} target="_blank" rel="noreferrer">
+            Resume
+          </a>
+        </nav>
+
         <section
           className="scene home-hero cad-hero"
           id="top"
@@ -410,13 +479,6 @@ export function PortfolioExperience() {
               turning compact ideas into working objects.
             </p>
           </div>
-
-          <nav className="cad-hero__nav depth-4" aria-label="Hero navigation">
-            <a href="#top" aria-current="page">Home</a>
-            <a href="#selected-work">Works</a>
-            <Link href="/about">About me</Link>
-            <a href={cvUrl} target="_blank" rel="noreferrer">Resume</a>
-          </nav>
 
           <p className="cad-hero__badge depth-4">
             <span aria-hidden="true" />
@@ -468,6 +530,31 @@ export function PortfolioExperience() {
           </div>
         </div>
 
+        <section
+          className="home-work"
+          id="selected-work"
+          aria-labelledby="selected-work-title"
+        >
+          <header className="home-work__header">
+            <p className="home-section-kicker">Selected work / proof in context</p>
+            <h2 id="selected-work-title">
+              Four cases.
+              <em>Four kinds of evidence.</em>
+            </h2>
+            <p>
+              Each project is labeled by its real status—from working prototype
+              to in-progress reconstruction.
+            </p>
+            <a href="#contact">Discuss a project <span>↓</span></a>
+          </header>
+
+          <div className="home-work__stack">
+            {projects.map((project, index) => (
+              <ProjectDevice project={project} index={index} key={project.key} />
+            ))}
+          </div>
+        </section>
+
         <section className="scene home-about" id="about" aria-labelledby="home-about-title">
           <div className="home-about__wash depth-0" data-depth="0" aria-hidden="true" />
           <div className="home-about__stamp depth-2" data-depth="2" aria-hidden="true">
@@ -507,7 +594,7 @@ export function PortfolioExperience() {
               believable—and every case states exactly what I designed, built or
               tested.
             </p>
-            <Link href="/about">Read the full profile <span>↗</span></Link>
+            <a href="#contact">Get in touch <span>↓</span></a>
           </div>
 
           <div className="home-about__fx depth-5" data-depth="5" aria-hidden="true">
@@ -558,31 +645,6 @@ export function PortfolioExperience() {
             <span>3D</span>
             <span>HW</span>
             <span>SCAN</span>
-          </div>
-        </section>
-
-        <section
-          className="home-work"
-          id="selected-work"
-          aria-labelledby="selected-work-title"
-        >
-          <header className="home-work__header">
-            <p className="home-section-kicker">Selected work / proof in context</p>
-            <h2 id="selected-work-title">
-              Four cases.
-              <em>Four kinds of evidence.</em>
-            </h2>
-            <p>
-              Each project is labeled by its real status—from working prototype
-              to in-progress reconstruction.
-            </p>
-            <Link href="/work">Open the filterable work index <span>↗</span></Link>
-          </header>
-
-          <div className="home-work__stack">
-            {projects.map((project, index) => (
-              <ProjectDevice project={project} index={index} key={project.key} />
-            ))}
           </div>
         </section>
 

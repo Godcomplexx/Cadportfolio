@@ -1,7 +1,6 @@
 import type { Metadata } from "vinext/shims/metadata";
 import { MotionSystem } from "@/components/MotionSystem";
 import { SiteFooter } from "@/components/SiteFooter";
-import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -63,7 +62,6 @@ export default function RootLayout({
         <a className="skip-link" href="#main-content">
           Skip to main content
         </a>
-        <SiteHeader />
         {children}
         <SiteFooter />
         <MotionSystem />
