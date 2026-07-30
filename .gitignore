@@ -10,3 +10,8 @@ playwright-report/
 *.log
 .DS_Store
 Thumbs.db
+
+# Local HTTrack capture metadata can contain machine-specific information.
+test/hts-cache/
+test/hts-log.txt
+*.whtt

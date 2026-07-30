@@ -1,6 +1,6 @@
 import type { Metadata } from "vinext/shims/metadata";
 import { MotionSystem } from "@/components/MotionSystem";
-import { SiteFooter } from "@/components/SiteFooter";
+import { SmoothScrollFrame } from "@/components/SmoothScrollFrame";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -59,11 +59,12 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <a className="skip-link" href="#main-content">
-          Skip to main content
-        </a>
-        {children}
-        <SiteFooter />
+        <SmoothScrollFrame>
+          <a className="skip-link" href="#main-content">
+            Skip to main content
+          </a>
+          {children}
+        </SmoothScrollFrame>
         <MotionSystem />
       </body>
     </html>

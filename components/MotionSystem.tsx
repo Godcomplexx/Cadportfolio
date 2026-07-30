@@ -13,12 +13,25 @@ type GsapLike = {
   to: (target: Element, options: Record<string, unknown>) => unknown;
 };
 
+type ScrollTriggerInstance = {
+  kill: () => void;
+};
+
+type ScrollTriggerLike = {
+  defaults: (options: Record<string, unknown>) => void;
+  refresh: () => void;
+  update: () => void;
+  getAll?: () => ScrollTriggerInstance[];
+};
+
 declare global {
   interface Window {
     gsap?: GsapLike;
-    ScrollTrigger?: unknown;
+    ScrollTrigger?: ScrollTriggerLike;
   }
 }
+
+const depthMotion = [0.06, 0.12, 0.2, 0.12, 0, 0.28] as const;
 
 export function MotionSystem() {
   const [enabled, setEnabled] = useState(true);
@@ -27,82 +40,136 @@ export function MotionSystem() {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const saved = window.localStorage.getItem("motion");
     const initialEnabled = saved ? saved === "on" : !media.matches;
+
     queueMicrotask(() => setEnabled(initialEnabled));
     document.documentElement.classList.toggle("no-motion", !initialEnabled);
+    document.documentElement.classList.add("motion-ready");
 
     const coarse = window.matchMedia("(pointer: coarse)").matches;
     if (coarse || navigator.hardwareConcurrency <= 4) {
       document.documentElement.classList.add("perf-lite");
     }
 
-    document.documentElement.classList.add("motion-ready");
-    const observer = new IntersectionObserver(
+    const scrollRoot = document.querySelector<HTMLElement>("[data-scroll-container]");
+    const revealObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            observer.unobserve(entry.target);
-          }
+          if (!entry.isIntersecting) return;
+          entry.target.classList.remove("reveal-pending");
+          entry.target.classList.add("is-visible");
+          revealObserver.unobserve(entry.target);
         });
       },
-      { threshold: 0.12, rootMargin: "0px 0px -6% 0px" },
+      {
+        root: scrollRoot,
+        threshold: 0.12,
+        rootMargin: "0px 0px -7% 0px",
+      },
     );
 
-    document.querySelectorAll("[data-reveal]").forEach((element) => {
-      observer.observe(element);
-    });
+    const revealVisible = () => {
+      const rootRect = scrollRoot?.getBoundingClientRect();
+      const viewportTop = rootRect?.top ?? 0;
+      const viewportBottom = rootRect?.bottom ?? window.innerHeight;
 
+      document.querySelectorAll<HTMLElement>("[data-reveal]:not(.is-visible)").forEach(
+        (element) => {
+          const rect = element.getBoundingClientRect();
+          if (rect.bottom < viewportTop || rect.top > viewportBottom * 0.94) return;
+
+          element.classList.remove("reveal-pending");
+          element.classList.add("is-visible");
+          revealObserver.unobserve(element);
+        },
+      );
+    };
+
+    const observeReveals = () => {
+      document.querySelectorAll("[data-reveal]:not(.is-visible)").forEach((element) => {
+        element.classList.add("reveal-pending");
+        revealObserver.observe(element);
+      });
+      revealVisible();
+    };
+
+    observeReveals();
+    let revealAttempts = 0;
+    const revealRegistration = window.setInterval(() => {
+      revealAttempts += 1;
+      observeReveals();
+      if (revealAttempts >= 8) window.clearInterval(revealRegistration);
+    }, 250);
+    const revealScrollTarget: Window | HTMLElement = scrollRoot ?? window;
+    revealScrollTarget.addEventListener("scroll", revealVisible, { passive: true });
+    window.addEventListener("resize", revealVisible);
+
+    let removeScrollTriggerListener: (() => void) | undefined;
+    let initTimer = 0;
     let attempts = 0;
+
     const initGsap = () => {
       attempts += 1;
       const gsap = window.gsap;
-      if (!gsap || !window.ScrollTrigger) {
-        if (attempts < 20) window.setTimeout(initGsap, 120);
+      const scrollTrigger = window.ScrollTrigger;
+
+      if (!gsap || !scrollTrigger) {
+        if (attempts < 24) initTimer = window.setTimeout(initGsap, 120);
         return;
       }
 
-      gsap.registerPlugin(window.ScrollTrigger);
+      gsap.registerPlugin(scrollTrigger);
+      if (scrollRoot) {
+        scrollTrigger.defaults({ scroller: scrollRoot });
+        scrollRoot.addEventListener("scroll", scrollTrigger.update, {
+          passive: true,
+        });
+        removeScrollTriggerListener = () => {
+          scrollRoot.removeEventListener("scroll", scrollTrigger.update);
+        };
+      }
+
       if (!document.documentElement.classList.contains("no-motion")) {
         gsap.utils.toArray<Element>("[data-depth]").forEach((layer) => {
           if (layer.hasAttribute("data-fog-layer")) return;
+
           const depth = Number(layer.getAttribute("data-depth") ?? 4);
-          if (depth === 4) return;
-          const factor = [0.08, 0.15, 0.25, 0.34, 0, 0.42][depth] ?? 0.15;
+          const factor = depthMotion[depth] ?? 0.1;
+          if (!factor) return;
+
           gsap.to(layer, {
             yPercent: -18 * factor,
             ease: "none",
             scrollTrigger: {
-              trigger: layer.closest(".scene, .media-field, .site-footer") ?? layer,
+              trigger:
+                layer.closest(".scene, .project-chapter, .fog-bridge") ?? layer,
               start: "top bottom",
               end: "bottom top",
-              scrub: true,
+              scrub: 0.9,
             },
           });
         });
 
         const fogMotion = {
           wash: {
-            from: { yPercent: -3, scale: 0.98, opacity: 0.72 },
-            to: { yPercent: 4, scale: 1.04, opacity: 1 },
+            from: { yPercent: -3, scale: 0.99, opacity: 0.75 },
+            to: { yPercent: 5, scale: 1.05, opacity: 1 },
           },
           back: {
-            from: { yPercent: -12, scale: 0.9, opacity: 0.24 },
-            to: { yPercent: 14, scale: 1.12, opacity: 0.7 },
+            from: { xPercent: -4, yPercent: -10, scale: 0.94, opacity: 0.24 },
+            to: { xPercent: 3, yPercent: 12, scale: 1.12, opacity: 0.66 },
           },
           middle: {
-            from: { yPercent: 8, scale: 0.96, opacity: 0.36 },
-            to: { yPercent: -12, scale: 1.1, opacity: 0.62 },
+            from: { xPercent: 3, yPercent: 9, scale: 0.96, opacity: 0.3 },
+            to: { xPercent: -4, yPercent: -10, scale: 1.1, opacity: 0.64 },
           },
           front: {
-            from: { yPercent: 16, scale: 1.02, opacity: 0.82 },
-            to: { yPercent: -20, scale: 1.2, opacity: 0.12 },
+            from: { yPercent: 15, scale: 1.02, opacity: 0.82 },
+            to: { yPercent: -19, scale: 1.18, opacity: 0.1 },
           },
         } as const;
 
         gsap.utils.toArray<Element>("[data-fog-layer]").forEach((layer) => {
-          const key = layer.getAttribute(
-            "data-fog-layer",
-          ) as keyof typeof fogMotion;
+          const key = layer.getAttribute("data-fog-layer") as keyof typeof fogMotion;
           const motion = fogMotion[key];
           if (!motion) return;
 
@@ -110,57 +177,86 @@ export function MotionSystem() {
             ...motion.to,
             ease: "none",
             scrollTrigger: {
-              trigger: layer.closest(".home-fog-transition") ?? layer,
+              trigger: layer.closest(".fog-bridge") ?? layer,
               start: "top 92%",
               end: "bottom top",
-              scrub: 1.15,
+              scrub: 1.1,
             },
           });
         });
 
-        const about = document.querySelector(".home-about");
-        const aboutCopy = about?.querySelector(".home-about__copy");
-        const aboutCards = about?.querySelector(".home-about__cards");
-
-        if (about && aboutCopy) {
+        const heroGhost = document.querySelector(".storm-hero__ghost");
+        if (heroGhost) {
           gsap.fromTo(
-            aboutCopy,
-            { y: 72, opacity: 0 },
+            heroGhost,
+            { xPercent: -1.8, opacity: 0.6 },
             {
-              y: 0,
-              opacity: 1,
+              xPercent: 2.6,
+              opacity: 0.18,
               ease: "none",
               scrollTrigger: {
-                trigger: about,
-                start: "top 88%",
-                end: "top 38%",
-                scrub: 0.9,
+                trigger: ".storm-hero",
+                start: "top top",
+                end: "bottom top",
+                scrub: 1,
               },
             },
           );
         }
 
-        if (about && aboutCards) {
+        const projectCards =
+          gsap.utils.toArray<Element>(".project-chapter");
+        projectCards.slice(0, -1).forEach((card, index) => {
+          const nextCard = projectCards[index + 1];
+          gsap.to(card, {
+            scale: 0.955,
+            opacity: 0.58,
+            filter: "brightness(0.62) saturate(0.74)",
+            transformOrigin: "center top",
+            ease: "none",
+            scrollTrigger: {
+              trigger: nextCard,
+              start: "top bottom",
+              end: "top top",
+              scrub: 0.85,
+            },
+          });
+        });
+
+        const contactCircle = document.querySelector(".contact-section__circle");
+        if (contactCircle) {
           gsap.fromTo(
-            aboutCards,
-            { opacity: 0.08 },
+            contactCircle,
+            { rotate: -8, scale: 0.84 },
             {
-              opacity: 1,
+              rotate: 8,
+              scale: 1.04,
               ease: "none",
               scrollTrigger: {
-                trigger: about,
-                start: "top 78%",
-                end: "top 28%",
-                scrub: 0.9,
+                trigger: ".contact-section",
+                start: "top bottom",
+                end: "bottom top",
+                scrub: 1,
               },
             },
           );
         }
       }
+
+      window.requestAnimationFrame(() => scrollTrigger.refresh());
     };
+
     initGsap();
 
-    return () => observer.disconnect();
+    return () => {
+      revealObserver.disconnect();
+      window.clearInterval(revealRegistration);
+      revealScrollTarget.removeEventListener("scroll", revealVisible);
+      window.removeEventListener("resize", revealVisible);
+      window.clearTimeout(initTimer);
+      removeScrollTriggerListener?.();
+      window.ScrollTrigger?.getAll?.().forEach((trigger) => trigger.kill());
+    };
   }, []);
 
   function toggleMotion() {
@@ -168,17 +264,18 @@ export function MotionSystem() {
     setEnabled(next);
     document.documentElement.classList.toggle("no-motion", !next);
     window.localStorage.setItem("motion", next ? "on" : "off");
+    window.ScrollTrigger?.refresh();
   }
 
   return (
     <button
       className="motion-toggle"
       type="button"
-      aria-pressed={!enabled}
+      aria-pressed={enabled}
       aria-label={`${enabled ? "Disable" : "Enable"} site animation`}
       onClick={toggleMotion}
     >
-      <span aria-hidden="true">{enabled ? "◌" : "●"}</span>
+      <span aria-hidden="true" />
       <span>{enabled ? "Motion on" : "Motion off"}</span>
     </button>
   );
