@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 type GsapLike = {
   registerPlugin: (...plugins: unknown[]) => void;
   utils: { toArray: <T>(selector: string) => T[] };
+  set: (target: Element, options: Record<string, unknown>) => unknown;
   fromTo: (
     target: Element,
     from: Record<string, unknown>,
@@ -34,14 +35,11 @@ declare global {
 const depthMotion = [0.06, 0.12, 0.2, 0.12, 0, 0.28] as const;
 
 export function MotionSystem() {
-  const [enabled, setEnabled] = useState(true);
-
   useEffect(() => {
+    // Motion follows the system preference; there is no manual override.
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const saved = window.localStorage.getItem("motion");
-    const initialEnabled = saved ? saved === "on" : !media.matches;
+    const initialEnabled = !media.matches;
 
-    queueMicrotask(() => setEnabled(initialEnabled));
     document.documentElement.classList.toggle("no-motion", !initialEnabled);
     document.documentElement.classList.add("motion-ready");
 
@@ -130,7 +128,7 @@ export function MotionSystem() {
 
       if (!document.documentElement.classList.contains("no-motion")) {
         gsap.utils.toArray<Element>("[data-depth]").forEach((layer) => {
-          if (layer.hasAttribute("data-fog-layer")) return;
+          if (layer.hasAttribute("data-fog-layer") || layer.hasAttribute("data-fixed-depth")) return;
 
           const depth = Number(layer.getAttribute("data-depth") ?? 4);
           const factor = depthMotion[depth] ?? 0.1;
@@ -141,7 +139,7 @@ export function MotionSystem() {
             ease: "none",
             scrollTrigger: {
               trigger:
-                layer.closest(".scene, .project-chapter, .fog-bridge") ?? layer,
+                layer.closest(".scene, .project-tile, .fog-bridge") ?? layer,
               start: "top bottom",
               end: "bottom top",
               scrub: 0.9,
@@ -185,7 +183,7 @@ export function MotionSystem() {
           });
         });
 
-        const heroGhost = document.querySelector(".storm-hero__ghost");
+        const heroGhost = document.querySelector(".system-hero__ghost");
         if (heroGhost) {
           gsap.fromTo(
             heroGhost,
@@ -195,7 +193,7 @@ export function MotionSystem() {
               opacity: 0.18,
               ease: "none",
               scrollTrigger: {
-                trigger: ".storm-hero",
+                trigger: ".system-hero",
                 start: "top top",
                 end: "bottom top",
                 scrub: 1,
@@ -204,32 +202,54 @@ export function MotionSystem() {
           );
         }
 
-        const projectCards =
-          gsap.utils.toArray<Element>(".project-chapter");
-        projectCards.slice(0, -1).forEach((card, index) => {
-          const nextCard = projectCards[index + 1];
-          gsap.to(card, {
-            scale: 0.955,
-            opacity: 0.58,
-            filter: "brightness(0.62) saturate(0.74)",
-            transformOrigin: "center top",
+        gsap.utils.toArray<Element>(".project-tile").forEach((tile) => {
+          const visual = tile.querySelector(".project-tile__visual");
+          if (!visual) return;
+
+          gsap.fromTo(visual, {
+            scale: 0.94,
+            opacity: 0.5,
+          }, {
+            scale: 1,
+            opacity: 1,
+            transformOrigin: "center center",
             ease: "none",
             scrollTrigger: {
-              trigger: nextCard,
-              start: "top bottom",
-              end: "top top",
-              scrub: 0.85,
+              trigger: tile,
+              start: "top 92%",
+              end: "center 55%",
+              scrub: 0.7,
             },
           });
         });
 
-        const contactCircle = document.querySelector(".contact-section__circle");
-        if (contactCircle) {
+        const signalRays = document.querySelector("[data-signal-rays]");
+        if (signalRays) {
           gsap.fromTo(
-            contactCircle,
-            { rotate: -8, scale: 0.84 },
+            signalRays,
+            { rotate: -5, scale: 0.72, opacity: 0.22 },
             {
-              rotate: 8,
+              rotate: 5,
+              scale: 1.18,
+              opacity: 0.82,
+              ease: "none",
+              scrollTrigger: {
+                trigger: ".signal-section",
+                start: "top bottom",
+                end: "bottom top",
+                scrub: 1,
+              },
+            },
+          );
+        }
+
+        const contactOrb = document.querySelector(".contact-section__orb");
+        if (contactOrb) {
+          gsap.fromTo(
+            contactOrb,
+            { rotate: -7, scale: 0.86 },
+            {
+              rotate: 7,
               scale: 1.04,
               ease: "none",
               scrollTrigger: {
@@ -259,24 +279,7 @@ export function MotionSystem() {
     };
   }, []);
 
-  function toggleMotion() {
-    const next = !enabled;
-    setEnabled(next);
-    document.documentElement.classList.toggle("no-motion", !next);
-    window.localStorage.setItem("motion", next ? "on" : "off");
-    window.ScrollTrigger?.refresh();
-  }
-
-  return (
-    <button
-      className="motion-toggle"
-      type="button"
-      aria-pressed={enabled}
-      aria-label={`${enabled ? "Disable" : "Enable"} site animation`}
-      onClick={toggleMotion}
-    >
-      <span aria-hidden="true" />
-      <span>{enabled ? "Motion on" : "Motion off"}</span>
-    </button>
-  );
+  // Motion runs the scroll effects; it has no visible control. Reduced-motion
+  // preferences are still honoured by the effect above.
+  return null;
 }

@@ -15,3 +15,22 @@ Thumbs.db
 test/hts-cache/
 test/hts-log.txt
 *.whtt
+
+# Local visual QA captures and downloaded reference archives.
+.openai/*
+!.openai/hosting.json
+*.zip
+Untitled.png
+
+# Local 3D/render sources. The optimized WebM and poster used by the site are
+# committed explicitly; these working exports are intentionally kept local.
+public/media/cad-hero/EXPORT.md
+public/media/cad-hero/alpha*.webm
+public/media/cad-hero/cad-hero.glb
+public/media/cad-hero/portfolio-terminal.glb
+public/media/cad-hero/render/
+public/media/cad-hero/render0001-0250.mp4
+public/media/cad-hero/textures/
+public/media/cover/
+public/media/models/
+public/media/music-player-frog.webp

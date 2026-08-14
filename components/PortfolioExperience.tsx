@@ -1,11 +1,20 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties } from "react";
-import { CadHeroScene } from "@/components/CadHeroScene";
+import { HeroTurntable } from "@/components/HeroTurntable";
+import { Scramble } from "@/components/Scramble";
+import { WorkIndex } from "@/components/WorkIndex";
 import { projects, type Project } from "@/lib/projects";
 
 const cvUrl =
   "https://godcomplexx.github.io/portfolio/resume/daria_melnikova_resume_print.html";
+
+/**
+ * Loading mark in the bottom-right HUD.
+ * Point this at a looping video in /public (e.g. "/media/hud-loop.mp4") and it
+ * replaces the wireframe globe. Leave empty to keep the globe.
+ */
+const hudMedia = "";
 
 const navigation = [
   { id: "top", label: "Home" },
@@ -45,27 +54,12 @@ const disciplines = [
 ] as const;
 
 const process = [
-  {
-    number: "01",
-    title: "Model",
-    text: "Shape the product around its real component stack.",
-    output: "CAD + assembly",
-  },
-  {
-    number: "02",
-    title: "Integrate",
-    text: "Connect form, electronics and interaction.",
-    output: "Working prototype",
-  },
-  {
-    number: "03",
-    title: "Prove",
-    text: "Test what works and show the evidence clearly.",
-    output: "Result + next step",
-  },
+  { number: "01", title: "Model", output: "CAD + assembly" },
+  { number: "02", title: "Integrate", output: "Working prototype" },
+  { number: "03", title: "Prove", output: "Result + next step" },
 ] as const;
 
-const chapterColors = ["#8bbab2", "#5f8b89", "#a9c7c2", "#759e9b"] as const;
+const projectColors = ["#a8ff35", "#60d9ff", "#ff6bdd", "#c3b8ff"] as const;
 
 function firstSentence(text: string) {
   return `${text.split(". ")[0].replace(/\.$/, "")}.`;
@@ -75,11 +69,25 @@ function compactRole(text: string) {
   return text.replace(/^I\s+/, "").replace(/\.$/, "");
 }
 
+function HudGlitch({ text }: { text: string }) {
+  return (
+    <span
+      className="hud-glitch hud-glitch--nested"
+      data-glitch={text}
+      data-depth="4"
+      data-fixed-depth
+    >
+      {text}
+      <span className="glitch-layer" aria-hidden="true" data-glitch-text={text} />
+    </span>
+  );
+}
+
 function ProjectSchematic({ project }: { project: Project }) {
   if (project.actualImage) {
     return (
       <div className="project-visual project-visual--image">
-        {/* The source is already a compressed portfolio asset and must keep its exact crop. */}
+        {/* The source is already compressed and its cloudy background is part of the work. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={project.actualImage}
@@ -88,6 +96,13 @@ function ProjectSchematic({ project }: { project: Project }) {
           decoding="async"
         />
         <span className="project-visual__scan" aria-hidden="true" />
+        <span
+          className="project-border-motion depth-5"
+          data-reveal="border"
+          data-depth="5"
+          data-fixed-depth
+          aria-hidden="true"
+        />
         <span className="project-visual__corner project-visual__corner--a" aria-hidden="true" />
         <span className="project-visual__corner project-visual__corner--b" aria-hidden="true" />
       </div>
@@ -100,12 +115,8 @@ function ProjectSchematic({ project }: { project: Project }) {
       role="img"
       aria-label={`${project.title} technical concept diagram`}
     >
-      <div className="schematic-axis schematic-axis--x" aria-hidden="true">
-        X
-      </div>
-      <div className="schematic-axis schematic-axis--y" aria-hidden="true">
-        Y
-      </div>
+      <div className="schematic-axis schematic-axis--x" aria-hidden="true">X</div>
+      <div className="schematic-axis schematic-axis--y" aria-hidden="true">Y</div>
       <div className="schematic-object" aria-hidden="true">
         <span className="schematic-part schematic-part--one" />
         <span className="schematic-part schematic-part--two" />
@@ -125,31 +136,36 @@ function ProjectSchematic({ project }: { project: Project }) {
           </li>
         ))}
       </ol>
+      <span
+        className="project-border-motion depth-5"
+        data-reveal="border"
+        data-depth="5"
+        data-fixed-depth
+        aria-hidden="true"
+      />
     </div>
   );
 }
 
-function ProjectChapter({ project, index }: { project: Project; index: number }) {
+function ProjectTile({ project, index }: { project: Project; index: number }) {
   const style = {
     "--project-index": index,
-    "--chapter-accent": chapterColors[index],
+    "--project-accent": projectColors[index],
   } as StyleVariables;
 
   return (
     <article
-      className={`project-chapter project-chapter--${project.key}`}
+      className={`project-tile project-tile--${project.key} ${index === 0 ? "project-tile--featured" : ""}`}
       id={`project-${project.key}`}
       aria-labelledby={`project-title-${project.key}`}
       style={style}
+      data-project-tile
     >
-      <div className="project-chapter__grid depth-0" data-depth="0" aria-hidden="true" />
-      <div className="project-chapter__glow depth-1" data-depth="1" aria-hidden="true" />
-      <div className="project-chapter__number depth-2" data-depth="2" aria-hidden="true">
-        {project.number}
-      </div>
+      <div className="project-tile__field depth-0" data-depth="0" aria-hidden="true" />
+      <div className="project-tile__halo depth-1" data-depth="1" aria-hidden="true" />
 
-      <figure className="project-chapter__stage depth-3" data-depth="3">
-        <div className="project-stage__rail" aria-hidden="true">
+      <figure className="project-tile__visual depth-3" data-depth="3">
+        <div className="project-tile__rail" aria-hidden="true">
           <span>DM / {project.number}</span>
           <i />
           <span>{project.category}</span>
@@ -161,63 +177,98 @@ function ProjectChapter({ project, index }: { project: Project; index: number })
         </figcaption>
       </figure>
 
-      <div className="project-chapter__copy depth-4" data-depth="4">
-        <p className="project-chapter__meta" data-reveal="line">
+      <div className="project-tile__copy depth-4" data-depth="4">
+        <p className="project-tile__meta" data-reveal="line">
           {project.number} / 04 &nbsp; {project.year} &nbsp; {project.status}
         </p>
         <h3 id={`project-title-${project.key}`} data-reveal="text">
-          {project.shortTitle}
+          {project.key === "smartmotion" ? <><span>Smart</span><br /><span>Motion</span></> : project.shortTitle}
         </h3>
-        <p className="project-chapter__strapline" data-reveal="line">
+        <p className="project-tile__strapline" data-reveal="line">
           {project.strapline}
         </p>
-
-        <dl className="project-chapter__facts" data-reveal="block">
+        <dl className="project-tile__facts" data-reveal="block">
           <div>
             <dt>My role</dt>
             <dd>{compactRole(project.role[0])}</dd>
           </div>
           <div>
-            <dt>Current proof</dt>
+            <dt>Proof</dt>
             <dd>{firstSentence(project.result)}</dd>
           </div>
         </dl>
-
-        <ul className="project-chapter__tools" aria-label={`${project.title} tools`}>
-          {project.tools.slice(0, 3).map((tool) => (
-            <li key={tool}>{tool}</li>
-          ))}
-        </ul>
-
-        {project.source ? (
-          <a
-            className="text-link"
-            href={project.source.href}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {project.source.label}
-            <span aria-hidden="true">↗</span>
-          </a>
-        ) : (
-          <a className="text-link" href="#contact">
-            Ask about this case
-            <span aria-hidden="true">↘</span>
-          </a>
-        )}
+        <footer className="project-tile__footer">
+          <ul aria-label={`${project.title} tools`}>
+            {project.tools.slice(0, 3).map((tool) => <li key={tool}>{tool}</li>)}
+          </ul>
+          {project.source ? (
+            <a className="glitch-trigger" href={project.source.href} target="_blank" rel="noreferrer">
+              <HudGlitch text="Source" /> <span aria-hidden="true">↗</span>
+            </a>
+          ) : (
+            <a className="glitch-trigger" href="#contact">
+              <HudGlitch text="Ask about it" /> <span aria-hidden="true">↘</span>
+            </a>
+          )}
+        </footer>
       </div>
 
-      <div className="project-chapter__status depth-5" data-depth="5" aria-hidden="true">
-        <span>CASE {project.number}</span>
-        <i />
-        <span>{String(index + 1).padStart(2, "0")}</span>
-      </div>
+      <span className="project-tile__label depth-5" data-depth="5" aria-hidden="true">
+        {index === 0 ? "WORKING PROTOTYPE" : "SELECTED CASE"}
+      </span>
     </article>
   );
 }
 
 export function PortfolioExperience() {
   const [activeSection, setActiveSection] = useState<SectionId>("top");
+  const [viewportLabel, setViewportLabel] = useState("0000 X 0000");
+  const [clock, setClock] = useState("--:--");
+  const [pointer, setPointer] = useState("0000 X 0000 Y");
+
+  // Cursor read-out in the HUD, updated straight from pointer moves.
+  const [hasPointer, setHasPointer] = useState(true);
+
+  useEffect(() => {
+    if (window.matchMedia("(pointer: coarse)").matches) {
+      const flag = window.setTimeout(() => setHasPointer(false), 0);
+      return () => window.clearTimeout(flag);
+    }
+    const onMove = (event: PointerEvent) => {
+      setPointer(
+        `${String(Math.round(event.clientX)).padStart(4, "0")} X ${String(
+          Math.round(event.clientY),
+        ).padStart(4, "0")} Y`,
+      );
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => window.removeEventListener("pointermove", onMove);
+  }, []);
+
+  // Live Moscow time, independent of the visitor's own timezone.
+  useEffect(() => {
+    const format = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Europe/Moscow",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    const tick = () => setClock(format.format(new Date()));
+    tick();
+    const timer = window.setInterval(tick, 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const updateViewport = () => {
+      setViewportLabel(
+        `${String(window.innerWidth).padStart(4, "0")} X ${String(window.innerHeight).padStart(4, "0")}`,
+      );
+    };
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
 
   useEffect(() => {
     const scrollRoot = document.querySelector<HTMLElement>("[data-scroll-container]");
@@ -230,14 +281,9 @@ export function PortfolioExperience() {
         const visible = entries
           .filter((entry) => entry.isIntersecting)
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-
         if (visible?.target.id) setActiveSection(visible.target.id as SectionId);
       },
-      {
-        root: scrollRoot,
-        rootMargin: "-20% 0px -55% 0px",
-        threshold: [0, 0.2, 0.5, 0.8],
-      },
+      { root: scrollRoot, rootMargin: "-18% 0px -62% 0px", threshold: [0, 0.2, 0.6] },
     );
 
     sections.forEach((section) => observer.observe(section));
@@ -245,240 +291,205 @@ export function PortfolioExperience() {
   }, []);
 
   return (
-    <div className="ocean-portfolio">
+    <div className="system-portfolio">
       <nav className="site-rail" aria-label="Primary navigation">
         <a className="site-rail__brand" href="#top" aria-label="Daria Melnikova, home">
-          <span>DM</span>
-          <strong>Daria Melnikova</strong>
+          DD<span>.studio</span>
         </a>
+        {/* data-text feeds the CSS glitch layers; see .site-rail__links a. */}
         <div className="site-rail__links">
           {navigation.slice(1).map(({ id, label }) => (
             <a
+              className="hud-glitch"
               href={`#${id}`}
               aria-current={activeSection === id ? "location" : undefined}
               key={id}
+              data-glitch={label}
             >
               {label}
+              {/* Empty on purpose: the copy is drawn from data-glitch in CSS,
+                  so the label is never duplicated in the accessibility tree. */}
+              <span
+                className="glitch-layer"
+                aria-hidden="true"
+                data-glitch-text={label}
+              />
             </a>
           ))}
-          <a href={cvUrl} target="_blank" rel="noreferrer">
-            CV <span aria-hidden="true">↗</span>
+          <a className="hud-glitch" href={cvUrl} target="_blank" rel="noreferrer" data-glitch="CV↗">
+            CV↗
+            <span className="glitch-layer" aria-hidden="true" data-glitch-text="CV↗" />
           </a>
         </div>
       </nav>
 
-      <aside className="site-index" aria-hidden="true">
-        <span>{navigation.findIndex(({ id }) => id === activeSection) + 1}</span>
-        <i />
-        <span>04</span>
+      <aside className="site-hud" aria-hidden="true">
+        <span>GMT+3 RU {clock}</span>
+        <span>{hasPointer ? pointer : viewportLabel}</span>
+        {hudMedia ? (
+          <video
+            className="site-hud__media"
+            src={hudMedia}
+            autoPlay
+            muted
+            loop
+            playsInline
+          />
+        ) : (
+          /* Globe: latitude rings plus meridians that squash on a staggered
+             cycle, so the sphere reads as rotating. */
+          <i className="site-globe">
+            <u />
+            <b /><b /><b /><b />
+          </i>
+        )}
       </aside>
 
-      <section className="scene storm-hero" id="top" aria-labelledby="hero-title">
-        <div className="storm-hero__grid depth-0" data-depth="0" aria-hidden="true" />
-        <div className="storm-hero__weather depth-1" data-depth="1" aria-hidden="true">
-          <span />
-          <span />
-          <i />
-        </div>
-        <div className="storm-hero__ghost depth-2" data-depth="2" aria-hidden="true">
-          FORM
-          <span>TO</span>
-          PROOF
+      <section className="scene system-hero" id="top" aria-labelledby="hero-title" aria-label="Introduction">
+        <div className="system-hero__field depth-0" data-depth="0" aria-hidden="true" />
+        <div className="system-hero__glow depth-1" data-depth="1" aria-hidden="true"><span /><span /></div>
+        <p className="system-hero__ghost depth-2" data-depth="2" aria-hidden="true">DARIA</p>
+
+        <div className="system-hero__model depth-3" data-depth="3">
+          <HeroTurntable />
         </div>
 
-        <div className="storm-hero__scene depth-3" data-depth="3">
-          <CadHeroScene />
-        </div>
-
-        <header className="storm-hero__header depth-4" data-depth="4">
+        <header className="system-hero__intro depth-4" data-depth="4">
           <div>
-            <p>3D, CAD &amp; Product Prototyping</p>
-            <h1 id="hero-title">Daria Melnikova</h1>
+            <p>3D, CAD &amp;<br />Product Prototyping</p>
+            <h1 id="hero-title">Daria<br />Melnikova</h1>
           </div>
+          <p>Thinking in form.<br />Building with proof.</p>
           <p>
-            Compact physical products
-            <br />
-            from model to working behavior.
-          </p>
-          <p>
-            CAD / 3D / Hardware
-            <br />
-            Moscow · Available worldwide
+            I design compact physical products and turn ideas into CAD models,
+            visual stories and working prototypes.
           </p>
         </header>
 
-        <div className="storm-hero__footer depth-4" data-depth="4">
-          <p>I turn ideas into CAD models, visual stories and working prototypes.</p>
-          <a href="#work">
-            Selected work
-            <span aria-hidden="true">↓</span>
-          </a>
-        </div>
+        <p
+          className="system-hero__manifesto depth-4"
+          data-depth="4"
+          data-hero-manifesto
+          data-words
+          data-reveal="words"
+        >
+          {/* Spec: hero lines cascade at 300 / 500 / 700ms. */}
+          <Scramble text="I BUILD" delay={300} />
+          <Scramble text="PHYSICAL IDEAS" delay={500} />
+          <Scramble text="THAT WORK" delay={700} />
+        </p>
 
-        <div className="storm-hero__crosshair depth-5" data-depth="5" aria-hidden="true">
-          <span />
-          <i />
-        </div>
+        <a className="system-hero__scroll glitch-trigger depth-4" data-depth="4" href="#work">
+          <HudGlitch text="Scroll to work" /> <span aria-hidden="true">↓</span>
+        </a>
+        <div className="system-hero__cursor-mark depth-5" data-depth="5" aria-hidden="true" />
       </section>
 
       <div className="fog-bridge" aria-hidden="true">
         <div className="fog-bridge__wash depth-0" data-depth="0" data-fog-layer="wash" />
-        <div
-          className="fog-bridge__cloud fog-bridge__cloud--back depth-1"
-          data-depth="1"
-          data-fog-layer="back"
-        >
-          <span />
-          <span />
-          <span />
-        </div>
-        <div
-          className="fog-bridge__cloud fog-bridge__cloud--middle depth-2"
-          data-depth="2"
-          data-fog-layer="middle"
-        >
-          <span />
-          <span />
-        </div>
-        <div
-          className="fog-bridge__cloud fog-bridge__cloud--front depth-5"
-          data-depth="5"
-          data-fog-layer="front"
-        >
-          <span />
-          <span />
-        </div>
+        <div className="fog-bridge__cloud fog-bridge__cloud--back depth-1" data-depth="1" data-fog-layer="back"><span /><span /></div>
+        <div className="fog-bridge__cloud fog-bridge__cloud--middle depth-2" data-depth="2" data-fog-layer="middle"><span /><span /></div>
+        <div className="fog-bridge__cloud fog-bridge__cloud--front depth-5" data-depth="5" data-fog-layer="front"><span /><span /></div>
       </div>
 
-      <section className="work-section" id="work" aria-labelledby="work-title">
+      <WorkIndex projects={projects} />
+
+      <section className="work-section" aria-labelledby="work-title">
         <header className="scene work-intro">
-          <div className="work-intro__grid depth-0" data-depth="0" aria-hidden="true" />
+          <div className="work-intro__field depth-0" data-depth="0" aria-hidden="true" />
           <div className="work-intro__glow depth-1" data-depth="1" aria-hidden="true" />
-          <p className="work-intro__index depth-2" data-depth="2" aria-hidden="true">
-            01—04
-          </p>
+          <p className="work-intro__index depth-2" data-depth="2" aria-hidden="true">01—04</p>
           <div className="work-intro__copy depth-4" data-depth="4">
-            <p className="section-kicker" data-reveal="line">
-              Selected systems / 2025—2026
-            </p>
-            <h2 id="work-title" data-reveal="text">
-              Small objects.
-              <span>Complete thinking.</span>
-            </h2>
-            <p data-reveal="line">
-              Four cases across CAD, motion, electronics and reconstruction.
-            </p>
+            <p className="section-kicker" data-reveal="line">Selected systems / 2025—2026</p>
+            <h2 id="work-title" data-reveal="text">SELECTED<br />WORK</h2>
+            <p data-reveal="line">CAD, hardware, motion and reconstruction — shown at their real stage.</p>
           </div>
-          <div className="work-intro__axis depth-5" data-depth="5" aria-hidden="true">
-            <span>X</span>
-            <i />
-            <span>Y</span>
-          </div>
+          <p className="work-intro__note depth-5" data-depth="5" aria-hidden="true">FORM / SIGNAL / PROOF</p>
         </header>
 
-        <div className="project-stack">
+        <div className="project-gallery">
           {projects.map((project, index) => (
-            <ProjectChapter project={project} index={index} key={project.key} />
+            <ProjectTile project={project} index={index} key={project.key} />
           ))}
         </div>
       </section>
 
-      <section className="scene practice-section" id="about" aria-labelledby="practice-title">
-        <div className="practice-section__grid depth-0" data-depth="0" aria-hidden="true" />
-        <div className="practice-section__orb depth-1" data-depth="1" aria-hidden="true" />
-        <p className="practice-section__ghost depth-2" data-depth="2" aria-hidden="true">
-          ONE PRACTICE
-        </p>
+      <section className="scene signal-section" aria-labelledby="signal-title">
+        <div className="signal-section__void depth-0" data-depth="0" aria-hidden="true" />
+        <div className="signal-section__glow depth-1" data-depth="1" aria-hidden="true" />
+        <div className="signal-section__rays depth-2" data-depth="2" data-signal-rays aria-hidden="true" />
+        <h2 className="signal-section__title depth-4" data-depth="4" id="signal-title" data-reveal="text">
+          BUILD<br />WITH<br />PURPOSE
+        </h2>
+        <div className="signal-section__principles depth-4" data-depth="4">
+          <p>Clarity first.<br />Delight second.</p>
+          <p>Independent by<br />design &amp; engineering.</p>
+          <p>Small loops.<br />Long arcs.</p>
+        </div>
+        <div className="signal-section__reticle depth-5" data-depth="5" aria-hidden="true"><span /><i /></div>
+      </section>
 
-        <div className="practice-section__heading depth-4" data-depth="4">
-          <p className="section-kicker" data-reveal="line">
-            About / connected disciplines
-          </p>
-          <h2 id="practice-title" data-reveal="text">
-            Form, signal
-            <span>and proof.</span>
+      <section className="scene about-section" id="about" aria-labelledby="about-title">
+        <div className="about-section__field depth-0" data-depth="0" aria-hidden="true" />
+        <div className="about-section__halo depth-1" data-depth="1" aria-hidden="true" />
+        <p className="about-section__ghost depth-2" data-depth="2" aria-hidden="true">ONE PRACTICE</p>
+
+        <div className="about-section__copy depth-4" data-depth="4">
+          <p className="section-kicker" data-reveal="line">Connected disciplines</p>
+          <h2 id="about-title" data-reveal="text">
+            FORM + SIGNAL<br />IN ONE PRACTICE
           </h2>
-          <p data-reveal="line">
-            I handle the visible object and the technical process behind it.
-          </p>
+          <p data-reveal="line">I handle the visible object and the technical process behind it.</p>
         </div>
 
-        <div className="practice-grid depth-3" data-depth="3">
+        <div className="discipline-grid depth-3" data-depth="3">
           {disciplines.map((discipline) => (
             <article data-reveal="block" key={discipline.number}>
               <span>{discipline.number}</span>
               <p>{discipline.tags}</p>
               <h3>{discipline.title}</h3>
               <small>{discipline.text}</small>
-              <i aria-hidden="true" />
             </article>
           ))}
         </div>
 
-        <div className="practice-section__mark depth-5" data-depth="5" aria-hidden="true">
-          DM / 04
-        </div>
-      </section>
-
-      <section className="scene process-section" id="process" aria-labelledby="process-title">
-        <div className="process-section__grid depth-0" data-depth="0" aria-hidden="true" />
-        <div className="process-section__line depth-2" data-depth="2" aria-hidden="true" />
-
-        <div className="process-section__heading depth-4" data-depth="4">
-          <p className="section-kicker" data-reveal="line">
-            A short product loop
-          </p>
-          <h2 id="process-title" data-reveal="text">
-            Model. Integrate.
-            <span>Prove.</span>
-          </h2>
-        </div>
-
-        <ol className="process-list depth-4" data-depth="4">
+        <ol className="process-strip depth-4" data-depth="4" aria-label="Product process">
           {process.map((step) => (
             <li data-reveal="block" key={step.number}>
               <span>{step.number}</span>
-              <div>
-                <h3>{step.title}</h3>
-                <p>{step.text}</p>
-              </div>
+              <strong>{step.title}</strong>
               <small>{step.output}</small>
             </li>
           ))}
         </ol>
-
-        <p className="process-section__stamp depth-5" data-depth="5" aria-hidden="true">
-          IDEA → OBJECT → EVIDENCE
-        </p>
       </section>
 
       <section className="scene contact-section" id="contact" aria-labelledby="contact-title">
-        <div className="contact-section__grid depth-0" data-depth="0" aria-hidden="true" />
-        <div className="contact-section__circle depth-2" data-depth="2" aria-hidden="true">
-          DM
-        </div>
-
+        <div className="contact-section__field depth-0" data-depth="0" aria-hidden="true" />
+        <div className="contact-section__orb depth-1" data-depth="1" aria-hidden="true" />
+        <div className="contact-section__dm depth-2" data-depth="2" aria-hidden="true">DM</div>
         <div className="contact-section__copy depth-4" data-depth="4">
-          <p className="section-kicker" data-reveal="line">
-            Open to roles and selected collaborations
-          </p>
-          <h2 id="contact-title" data-reveal="text">
-            Let&apos;s make it
-            <span>tangible.</span>
+          <p className="section-kicker" data-reveal="line">Open to roles and selected collaborations</p>
+          {/* Spec: adjacent footer words resolve in opposing directions. */}
+          <h2 id="contact-title">
+            <Scramble text="LET'S MAKE" direction="ltr" />
+            <br />
+            <Scramble text="SOMETHING" direction="rtl" />
+            <br />
+            <Scramble text="TANGIBLE." direction="ltr" className="contact-accent" />
           </h2>
           <div className="contact-section__links">
-            <a href="mailto:daha442242@gmail.com">
-              Email Daria <span aria-hidden="true">↗</span>
+            <a className="glitch-trigger" href="mailto:daha442242@gmail.com">
+              <HudGlitch text="Email Daria" /> <span aria-hidden="true">↗</span>
             </a>
-            <a href={cvUrl} target="_blank" rel="noreferrer">
-              View CV <span aria-hidden="true">↗</span>
+            <a className="glitch-trigger" href={cvUrl} target="_blank" rel="noreferrer">
+              <HudGlitch text="View CV" /> <span aria-hidden="true">↗</span>
             </a>
-            <a href="https://github.com/Godcomplexx" target="_blank" rel="noreferrer">
-              GitHub <span aria-hidden="true">↗</span>
+            <a className="glitch-trigger" href="https://github.com/Godcomplexx" target="_blank" rel="noreferrer">
+              <HudGlitch text="GitHub" /> <span aria-hidden="true">↗</span>
             </a>
           </div>
         </div>
-
         <footer className="contact-section__footer depth-5" data-depth="5">
           <span>Daria Melnikova</span>
           <span>3D / CAD / Product Prototyping</span>
