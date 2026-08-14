@@ -1,3 +1,5 @@
+import { publicPath } from "@/lib/public-path";
+
 export const PROJECT_KEYS = [
   "smartmotion",
   "modular-system",
@@ -91,7 +93,7 @@ export const projects: Project[] = [
       "Integrate the assembled electronics into the next enclosure iteration and measure battery current with USB disconnected.",
     visualLabel: "CONCEPT RENDER / ENCLOSURE DIRECTION",
     visualRatio: "1:1 / SOURCE IMAGE",
-    actualImage: "/media/smartmotion-prototype.webp",
+    actualImage: publicPath("/media/smartmotion-prototype.webp"),
     actualImageAlt:
       "Green organic SmartMotion keychain enclosure concept suspended from a metal clip against a cloudy sky.",
     source: {

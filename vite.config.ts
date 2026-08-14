@@ -5,9 +5,12 @@ import vinext from "vinext";
 
 export default defineConfig(() => {
   const localPreview = process.env.LOCAL_PREVIEW === "1";
+  const githubPages = process.env.GITHUB_PAGES === "1";
+  const browserOnlyBuild = localPreview || githubPages;
 
   return {
-    resolve: localPreview
+    base: githubPages ? "/Cadportfolio/" : undefined,
+    resolve: browserOnlyBuild
       ? {
           alias: {
             "cloudflare:workers": resolve(
@@ -19,7 +22,7 @@ export default defineConfig(() => {
       : undefined,
     build: {
       rolldownOptions: {
-        external: localPreview ? [] : ["cloudflare:workers"],
+        external: browserOnlyBuild ? [] : ["cloudflare:workers"],
       },
     },
     plugins: localPreview
