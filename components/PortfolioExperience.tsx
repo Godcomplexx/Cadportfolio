@@ -4,7 +4,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { HeroTurntable } from "@/components/HeroTurntable";
 import { Scramble } from "@/components/Scramble";
 import { WorkIndex } from "@/components/WorkIndex";
-import { projectIndex, projects, type Project } from "@/lib/projects";
+import { featuredProjects, projectIndex, type Project } from "@/lib/projects";
 
 const cvUrl =
   "https://godcomplexx.github.io/portfolio/resume/daria_melnikova_resume_print.html";
@@ -47,9 +47,9 @@ const disciplines = [
   },
   {
     number: "04",
-    title: "Reconstruction",
-    text: "Capture, cleanup, UVs and texture.",
-    tags: "CAPTURE / MESH / TEXTURE",
+    title: "Applied Computation",
+    text: "ML, computer vision and biomedical systems.",
+    tags: "MODEL / VISION / SIGNAL",
   },
 ] as const;
 
@@ -179,7 +179,7 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
 
       <div className="project-tile__copy depth-4" data-depth="4">
         <p className="project-tile__meta" data-reveal="line">
-          {project.number} / {String(projects.length).padStart(2, "0")} &nbsp; {project.year} &nbsp; {project.status}
+          {project.number} / {String(featuredProjects.length).padStart(2, "0")} &nbsp; {project.year} &nbsp; {project.status}
         </p>
         <h3 id={`project-title-${project.key}`} data-reveal="text">
           {project.key === "smartmotion" ? <><span>Smart</span><br /><span>Motion</span></> : project.shortTitle}
@@ -228,7 +228,7 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
       </div>
 
       <span className="project-tile__label depth-5" data-depth="5" aria-hidden="true">
-        {index === 0 ? "WORKING PROTOTYPE" : "SELECTED CASE"}
+        {index === 0 ? "FEATURED SYSTEM" : "WORKING PROTOTYPE"}
       </span>
     </article>
   );
@@ -236,6 +236,7 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
 
 export function PortfolioExperience() {
   const [activeSection, setActiveSection] = useState<SectionId>("top");
+  const [isPastHero, setIsPastHero] = useState(false);
   const [viewportLabel, setViewportLabel] = useState("0000 X 0000");
   const [clock, setClock] = useState("--:--");
   const [pointer, setPointer] = useState("0000 X 0000 Y");
@@ -304,8 +305,27 @@ export function PortfolioExperience() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const scrollRoot = document.querySelector<HTMLElement>("[data-scroll-container]");
+    if (!scrollRoot) return;
+
+    const updateInterfaceMode = () => {
+      setIsPastHero(scrollRoot.scrollTop > window.innerHeight * 0.72);
+    };
+
+    updateInterfaceMode();
+    scrollRoot.addEventListener("scroll", updateInterfaceMode, { passive: true });
+    window.addEventListener("resize", updateInterfaceMode);
+    return () => {
+      scrollRoot.removeEventListener("scroll", updateInterfaceMode);
+      window.removeEventListener("resize", updateInterfaceMode);
+    };
+  }, []);
+
   return (
-    <div className="system-portfolio">
+    <div
+      className={`system-portfolio ${isPastHero ? "system-portfolio--content" : ""}`}
+    >
       <nav className="site-rail" aria-label="Primary navigation">
         <a className="site-rail__brand" href="#top" aria-label="Daria Melnikova, home">
           DD<span>.studio</span>
@@ -370,13 +390,13 @@ export function PortfolioExperience() {
 
         <header className="system-hero__intro depth-4" data-depth="4">
           <div>
-            <p>3D, CAD &amp;<br />Product Prototyping</p>
+            <p>R&amp;D, Product<br />Systems &amp; CAD</p>
             <h1 id="hero-title">Daria<br />Melnikova</h1>
           </div>
           <p>Thinking in form.<br />Building with proof.</p>
           <p>
-            I design compact physical products and turn ideas into CAD models,
-            visual stories and working prototypes.
+            I design physical systems from form and internal architecture to
+            electronics, embedded behavior and working prototypes.
           </p>
         </header>
 
@@ -406,27 +426,29 @@ export function PortfolioExperience() {
         <div className="fog-bridge__cloud fog-bridge__cloud--front depth-5" data-depth="5" data-fog-layer="front"><span /><span /></div>
       </div>
 
-      <section className="work-section" id="work" aria-labelledby="work-title">
+      <WorkIndex projects={projectIndex} />
+
+      <section className="work-section" id="featured-work" aria-labelledby="work-title">
         <header className="scene work-intro">
           <div className="work-intro__field depth-0" data-depth="0" aria-hidden="true" />
           <div className="work-intro__glow depth-1" data-depth="1" aria-hidden="true" />
-          <p className="work-intro__index depth-2" data-depth="2" aria-hidden="true">01—04</p>
+          <p className="work-intro__index depth-2" data-depth="2" aria-hidden="true">
+            01—{String(featuredProjects.length).padStart(2, "0")}
+          </p>
           <div className="work-intro__copy depth-4" data-depth="4">
             <p className="section-kicker" data-reveal="line">Selected systems / 2025—2026</p>
             <h2 id="work-title" data-reveal="text">SELECTED<br />WORK</h2>
-            <p data-reveal="line">Product, CAD, hardware and motion — shown at their real stage.</p>
+            <p data-reveal="line">Two working systems — shown through real builds, behavior and next proof.</p>
           </div>
           <p className="work-intro__note depth-5" data-depth="5" aria-hidden="true">FORM / SIGNAL / PROOF</p>
         </header>
 
         <div className="project-gallery">
-          {projects.map((project, index) => (
+          {featuredProjects.map((project, index) => (
             <ProjectTile project={project} index={index} key={project.key} />
           ))}
         </div>
       </section>
-
-      <WorkIndex projects={projectIndex} />
 
       <section className="scene signal-section" aria-labelledby="signal-title">
         <div className="signal-section__void depth-0" data-depth="0" aria-hidden="true" />

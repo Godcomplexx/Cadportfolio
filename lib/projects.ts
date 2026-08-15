@@ -7,6 +7,7 @@ export const PROJECT_KEYS = [
   "eeg-wearable",
   "handheld-media",
   "photogrammetry",
+  "eeg-seizure-prediction",
 ] as const;
 
 export type ProjectKey = (typeof PROJECT_KEYS)[number];
@@ -14,7 +15,8 @@ export type ProjectCategory =
   | "PRODUCT / MECHANICAL"
   | "EMBEDDED HARDWARE"
   | "VISUALIZATION / MOTION"
-  | "RECONSTRUCTION";
+  | "RECONSTRUCTION"
+  | "APPLIED COMPUTATION";
 
 export type Project = {
   key: ProjectKey;
@@ -54,6 +56,7 @@ export type ProjectIndexEntry = {
   year: string;
   status: string;
   href?: string;
+  external?: boolean;
 };
 
 export const projects: Project[] = [
@@ -298,6 +301,10 @@ export const projects: Project[] = [
   },
 ];
 
+export const featuredProjects = projects.filter(
+  (project) => project.key === "copet-pilot" || project.key === "smartmotion",
+);
+
 export const projectIndex: ProjectIndexEntry[] = [
   ...projects.map((project) => ({
     key: project.key,
@@ -306,7 +313,10 @@ export const projectIndex: ProjectIndexEntry[] = [
     category: project.category,
     year: project.year,
     status: project.status,
-    href: `#project-${project.key}`,
+    href:
+      project.key === "copet-pilot" || project.key === "smartmotion"
+        ? `#project-${project.key}`
+        : undefined,
   })),
   {
     key: "handheld-media",
@@ -323,6 +333,16 @@ export const projectIndex: ProjectIndexEntry[] = [
     category: "RECONSTRUCTION",
     year: "2026",
     status: "Capture in progress",
+  },
+  {
+    key: "eeg-seizure-prediction",
+    number: "07",
+    title: "EEG Seizure Prediction",
+    category: "APPLIED COMPUTATION",
+    year: "2026",
+    status: "Research code",
+    href: "https://github.com/Godcomplexx/epilepsy",
+    external: true,
   },
 ];
 

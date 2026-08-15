@@ -2,10 +2,12 @@ import type { ProjectIndexEntry } from "@/lib/projects";
 import { Words } from "@/components/Words";
 
 export function WorkIndex({ projects }: { projects: ProjectIndexEntry[] }) {
+  const categories = [...new Set(projects.map((project) => project.category))];
+
   return (
     <section
       className="work-index grid12"
-      id="project-index"
+      id="work"
       aria-labelledby="project-index-title"
     >
       <header className="work-index__head">
@@ -23,6 +25,10 @@ export function WorkIndex({ projects }: { projects: ProjectIndexEntry[] }) {
         </p>
       </header>
 
+      <ul className="work-index__legend" aria-label="Project categories">
+        {categories.map((category) => <li key={category}>{category}</li>)}
+      </ul>
+
       <div className="work-index__list">
         {projects.map((project) => {
           const content = (
@@ -37,7 +43,13 @@ export function WorkIndex({ projects }: { projects: ProjectIndexEntry[] }) {
           );
 
           return project.href ? (
-            <a className="work-index__row" href={project.href} key={project.key}>
+            <a
+              className="work-index__row"
+              href={project.href}
+              key={project.key}
+              target={project.external ? "_blank" : undefined}
+              rel={project.external ? "noreferrer" : undefined}
+            >
               {content}
             </a>
           ) : (
