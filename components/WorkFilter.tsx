@@ -7,10 +7,10 @@ import { projects, type ProjectCategory } from "@/lib/projects";
 
 const filters = [
   "All",
-  "Product & CAD",
-  "3D & Motion",
-  "Hardware",
-  "Reconstruction",
+  "PRODUCT / MECHANICAL",
+  "EMBEDDED HARDWARE",
+  "VISUALIZATION / MOTION",
+  "RECONSTRUCTION",
 ] as const;
 
 export function WorkFilter() {

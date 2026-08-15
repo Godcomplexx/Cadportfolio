@@ -8,16 +8,18 @@
 export function Words({
   text,
   className,
+  id,
   as: Tag = "span",
 }: {
   text: string;
   className?: string;
+  id?: string;
   as?: "span" | "h1" | "h2" | "h3" | "p";
 }) {
   const words = text.split(/\s+/).filter(Boolean);
 
   return (
-    <Tag className={className} data-words data-reveal="words">
+    <Tag id={id} className={className} data-words data-reveal="words">
       {words.map((word, index) => (
         <span
           key={`${word}-${index}`}

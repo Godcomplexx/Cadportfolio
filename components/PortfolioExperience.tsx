@@ -4,7 +4,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { HeroTurntable } from "@/components/HeroTurntable";
 import { Scramble } from "@/components/Scramble";
 import { WorkIndex } from "@/components/WorkIndex";
-import { projects, type Project } from "@/lib/projects";
+import { projectIndex, projects, type Project } from "@/lib/projects";
 
 const cvUrl =
   "https://godcomplexx.github.io/portfolio/resume/daria_melnikova_resume_print.html";
@@ -29,21 +29,21 @@ type StyleVariables = CSSProperties & Record<`--${string}`, string | number>;
 const disciplines = [
   {
     number: "01",
-    title: "CAD & Mechanical",
+    title: "Product / Mechanical",
     text: "Enclosures, parts and assembly logic.",
     tags: "FORM / FIT / ASSEMBLY",
   },
   {
     number: "02",
-    title: "3D & Motion",
-    text: "Materials, light and product stories.",
-    tags: "LIGHT / MATERIAL / STORY",
+    title: "Embedded Hardware",
+    text: "Electronics, sensors and working behavior.",
+    tags: "BOARD / SIGNAL / TEST",
   },
   {
     number: "03",
-    title: "Hardware",
-    text: "Electronics, sensors and working behavior.",
-    tags: "BOARD / SIGNAL / TEST",
+    title: "Visualization / Motion",
+    text: "Materials, light and product stories.",
+    tags: "LIGHT / MATERIAL / STORY",
   },
   {
     number: "04",
@@ -179,7 +179,7 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
 
       <div className="project-tile__copy depth-4" data-depth="4">
         <p className="project-tile__meta" data-reveal="line">
-          {project.number} / 04 &nbsp; {project.year} &nbsp; {project.status}
+          {project.number} / {String(projects.length).padStart(2, "0")} &nbsp; {project.year} &nbsp; {project.status}
         </p>
         <h3 id={`project-title-${project.key}`} data-reveal="text">
           {project.key === "smartmotion" ? <><span>Smart</span><br /><span>Motion</span></> : project.shortTitle}
@@ -197,6 +197,20 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
             <dd>{firstSentence(project.result)}</dd>
           </div>
         </dl>
+        <div className="project-tile__evidence" data-reveal="block">
+          <div>
+            <span>Verified</span>
+            <ul>
+              {project.evidence.verified.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </div>
+          <div>
+            <span>Next proof</span>
+            <ul>
+              {project.evidence.next.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </div>
+        </div>
         <footer className="project-tile__footer">
           <ul aria-label={`${project.title} tools`}>
             {project.tools.slice(0, 3).map((tool) => <li key={tool}>{tool}</li>)}
@@ -392,9 +406,7 @@ export function PortfolioExperience() {
         <div className="fog-bridge__cloud fog-bridge__cloud--front depth-5" data-depth="5" data-fog-layer="front"><span /><span /></div>
       </div>
 
-      <WorkIndex projects={projects} />
-
-      <section className="work-section" aria-labelledby="work-title">
+      <section className="work-section" id="work" aria-labelledby="work-title">
         <header className="scene work-intro">
           <div className="work-intro__field depth-0" data-depth="0" aria-hidden="true" />
           <div className="work-intro__glow depth-1" data-depth="1" aria-hidden="true" />
@@ -402,7 +414,7 @@ export function PortfolioExperience() {
           <div className="work-intro__copy depth-4" data-depth="4">
             <p className="section-kicker" data-reveal="line">Selected systems / 2025—2026</p>
             <h2 id="work-title" data-reveal="text">SELECTED<br />WORK</h2>
-            <p data-reveal="line">CAD, hardware, motion and reconstruction — shown at their real stage.</p>
+            <p data-reveal="line">Product, CAD, hardware and motion — shown at their real stage.</p>
           </div>
           <p className="work-intro__note depth-5" data-depth="5" aria-hidden="true">FORM / SIGNAL / PROOF</p>
         </header>
@@ -413,6 +425,8 @@ export function PortfolioExperience() {
           ))}
         </div>
       </section>
+
+      <WorkIndex projects={projectIndex} />
 
       <section className="scene signal-section" aria-labelledby="signal-title">
         <div className="signal-section__void depth-0" data-depth="0" aria-hidden="true" />
