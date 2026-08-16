@@ -65,7 +65,7 @@ let apiPromise: Promise<YouTubeNamespace> | null = null;
 function loadYouTubeApi(): Promise<YouTubeNamespace> {
   if (apiPromise) return apiPromise;
 
-  apiPromise = new Promise<YouTubeNamespace>((resolve, reject) => {
+  const request = new Promise<YouTubeNamespace>((resolve, reject) => {
     if (window.YT?.Player) {
       resolve(window.YT);
       return;
@@ -85,6 +85,12 @@ function loadYouTubeApi(): Promise<YouTubeNamespace> {
       script.onerror = () => reject(new Error("Failed to load the YouTube API"));
       document.head.appendChild(script);
     }
+  });
+
+  apiPromise = request.catch((error) => {
+    // A failed network request must be retryable from the Play button.
+    apiPromise = null;
+    throw error;
   });
 
   return apiPromise;
@@ -129,11 +135,13 @@ export function MusicPlayer() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [failed, setFailed] = useState(false);
+  const [playerRequested, setPlayerRequested] = useState(false);
 
   const hostRef = useRef<HTMLDivElement>(null);
   // Written to directly each frame, bypassing React for the moving fill.
   const progressRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YouTubePlayer | null>(null);
+  const pendingPlayRef = useRef(false);
 
   useEffect(() => {
     if (window.localStorage.getItem("music-widget-v2") !== "closed") return;
@@ -142,6 +150,10 @@ export function MusicPlayer() {
   }, []);
 
   useEffect(() => {
+    // Keep the landing page free of YouTube scripts and iframes until the
+    // visitor explicitly asks for audio.
+    if (!playerRequested) return;
+
     const host = hostRef.current;
     if (!host) return;
 
@@ -153,6 +165,51 @@ export function MusicPlayer() {
 
     let disposed = false;
     let poll = 0;
+    let playerIsPlaying = false;
+    let lastShown = -1;
+
+    const stopPolling = () => {
+      window.cancelAnimationFrame(poll);
+      poll = 0;
+    };
+
+    const syncProgress = () => {
+      const current = playerRef.current;
+      if (!current?.getCurrentTime) return;
+
+      const elapsed = current.getCurrentTime();
+      const whole = Math.floor(elapsed);
+      if (whole !== lastShown) {
+        lastShown = whole;
+        setCurrentTime(elapsed);
+      }
+
+      const total = current.getDuration();
+      if (total > 0) setDuration((value) => (value === total ? value : total));
+      progressRef.current?.style.setProperty(
+        "--player-progress",
+        `${total > 0 ? Math.min((elapsed / total) * 100, 100) : 0}%`,
+      );
+    };
+
+    const tick = () => {
+      poll = 0;
+      if (disposed || !playerIsPlaying || document.hidden) return;
+      syncProgress();
+      poll = window.requestAnimationFrame(tick);
+    };
+
+    const startPolling = () => {
+      if (!poll && playerIsPlaying && !document.hidden) {
+        poll = window.requestAnimationFrame(tick);
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (document.hidden) stopPolling();
+      else startPolling();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     loadYouTubeApi()
       .then((YT) => {
@@ -178,12 +235,22 @@ export function MusicPlayer() {
               setFailed(false);
               setDuration(total);
               event.target.setVolume(70);
+              if (pendingPlayRef.current) {
+                pendingPlayRef.current = false;
+                event.target.playVideo();
+              }
             },
             onStateChange: (event) => {
               if (disposed) return;
-              setPlaying(event.data === YT.PlayerState.PLAYING);
+              playerIsPlaying = event.data === YT.PlayerState.PLAYING;
+              setPlaying(playerIsPlaying);
               const total = event.target.getDuration();
               if (total > 0) setDuration(total);
+              if (playerIsPlaying) startPolling();
+              else {
+                stopPolling();
+                syncProgress();
+              }
               if (event.data === YT.PlayerState.ENDED) {
                 setCurrentTime(total);
               }
@@ -195,49 +262,24 @@ export function MusicPlayer() {
         });
 
         playerRef.current = player;
-
-        // Drive the read-out from rAF so updates land in step with the
-        // browser's paint cycle. A setInterval fires on its own schedule and
-        // its state writes miss frames, which is what made the bar stutter.
-        let lastShown = -1;
-        const tick = () => {
-          poll = window.requestAnimationFrame(tick);
-          const current = playerRef.current;
-          if (!current?.getCurrentTime) return;
-
-          const elapsed = current.getCurrentTime();
-          // The clock only renders whole seconds, so re-render at most once
-          // per second instead of on every frame.
-          const whole = Math.floor(elapsed);
-          if (whole !== lastShown) {
-            lastShown = whole;
-            setCurrentTime(elapsed);
-          }
-
-          const total = current.getDuration();
-          if (total > 0) setDuration((value) => (value === total ? value : total));
-
-          // The bar itself is moved through a CSS variable — no React render,
-          // so the fill stays smooth between the once-a-second updates.
-          progressRef.current?.style.setProperty(
-            "--player-progress",
-            `${total > 0 ? Math.min((elapsed / total) * 100, 100) : 0}%`,
-          );
-        };
-        poll = window.requestAnimationFrame(tick);
       })
       .catch(() => {
-        if (!disposed) setFailed(true);
+        if (!disposed) {
+          pendingPlayRef.current = false;
+          setFailed(true);
+          setPlayerRequested(false);
+        }
       });
 
     return () => {
       disposed = true;
-      window.cancelAnimationFrame(poll);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      stopPolling();
       playerRef.current?.destroy?.();
       playerRef.current = null;
       host.replaceChildren();
     };
-  }, []);
+  }, [playerRequested]);
 
   const toggleOpen = useCallback(() => {
     const update = () => {
@@ -262,7 +304,12 @@ export function MusicPlayer() {
 
   const togglePlay = useCallback(() => {
     const player = playerRef.current;
-    if (!player) return;
+    if (!player) {
+      pendingPlayRef.current = true;
+      setFailed(false);
+      setPlayerRequested(true);
+      return;
+    }
     if (playing) player.pauseVideo();
     else player.playVideo();
   }, [playing]);
@@ -327,6 +374,7 @@ export function MusicPlayer() {
     <section
       className={`music-widget${open ? "" : " music-widget--closed"}`}
       aria-label="Music player"
+      aria-busy={playerRequested && !ready}
     >
       <header className="music-widget__bar">
         {open ? (
@@ -458,8 +506,8 @@ export function MusicPlayer() {
                 className="music-widget__play"
                 type="button"
                 onClick={togglePlay}
-                disabled={!ready}
-                aria-label={playing ? "Pause" : "Play"}
+                disabled={playerRequested && !ready}
+                aria-label={playing ? "Pause" : playerRequested ? "Loading mix" : "Play mix"}
               >
                 {playing ? (
                   <PixelIcon name="stop"><path d="M7 7h18v18H7z" /></PixelIcon>

@@ -51,7 +51,9 @@ export function SmoothScrollFrame({ children }: { children: ReactNode }) {
       wrapper,
       content,
       eventsTarget: wrapper,
-      lerp: 0.1,
+      // Responsive enough to preserve wheel intent; scroll-linked motion uses
+      // only a short scrub, so the page no longer smooths the same input twice.
+      lerp: 0.18,
       smoothWheel: true,
       syncTouch: true,
       anchors: true,
