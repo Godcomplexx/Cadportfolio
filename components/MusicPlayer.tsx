@@ -3,13 +3,13 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
   type MouseEvent,
   type ReactNode,
 } from "react";
-import { flushSync } from "react-dom";
 import {
   MIX_CUES,
   PLAYLIST_OWNER,
@@ -49,10 +49,6 @@ type YouTubeNamespace = {
   PlayerState: { ENDED: number; PLAYING: number; PAUSED: number };
 };
 
-type ViewTransitionDocument = Document & {
-  startViewTransition?: (update: () => void) => { finished: Promise<void> };
-};
-
 declare global {
   interface Window {
     YT?: YouTubeNamespace;
@@ -61,6 +57,7 @@ declare global {
 }
 
 let apiPromise: Promise<YouTubeNamespace> | null = null;
+const PLAYER_WINDOW_TRANSITION_MS = 580;
 
 function loadYouTubeApi(): Promise<YouTubeNamespace> {
   if (apiPromise) return apiPromise;
@@ -129,6 +126,9 @@ function PixelIcon({ name, children }: { name: string; children: ReactNode }) {
 
 export function MusicPlayer() {
   const [open, setOpen] = useState(true);
+  const [showExpanded, setShowExpanded] = useState(true);
+  const [windowMotion, setWindowMotion] = useState<"idle" | "opening" | "closing">("idle");
+  const [openHeight, setOpenHeight] = useState<number | null>(null);
   const [ready, setReady] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(70);
@@ -142,11 +142,29 @@ export function MusicPlayer() {
   const progressRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YouTubePlayer | null>(null);
   const pendingPlayRef = useRef(false);
+  const widgetRef = useRef<HTMLElement>(null);
+  const windowMotionTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (window.localStorage.getItem("music-widget-v2") !== "closed") return;
-    const restore = window.setTimeout(() => setOpen(false), 0);
+    const restore = window.setTimeout(() => {
+      setOpen(false);
+      setShowExpanded(false);
+    }, 0);
     return () => window.clearTimeout(restore);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!showExpanded || openHeight !== null) return;
+    const widget = widgetRef.current;
+    if (!widget) return;
+    setOpenHeight(widget.offsetHeight);
+  }, [openHeight, showExpanded]);
+
+  useEffect(() => () => {
+    if (windowMotionTimerRef.current !== null) {
+      window.clearTimeout(windowMotionTimerRef.current);
+    }
   }, []);
 
   useEffect(() => {
@@ -282,25 +300,29 @@ export function MusicPlayer() {
   }, [playerRequested]);
 
   const toggleOpen = useCallback(() => {
-    const update = () => {
-      setOpen((current) => {
-        const next = !current;
-        window.localStorage.setItem("music-widget-v2", next ? "open" : "closed");
-        return next;
-      });
-    };
+    if (windowMotion !== "idle") return;
 
-    const transitionDocument = document as ViewTransitionDocument;
+    const next = !open;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!transitionDocument.startViewTransition || reduceMotion) {
-      update();
+
+    if (reduceMotion) {
+      setOpen(next);
+      setShowExpanded(next);
+      window.localStorage.setItem("music-widget-v2", next ? "open" : "closed");
       return;
     }
 
-    transitionDocument.startViewTransition(() => {
-      flushSync(update);
-    });
-  }, []);
+    if (next) setShowExpanded(true);
+    setWindowMotion(next ? "opening" : "closing");
+    setOpen(next);
+    window.localStorage.setItem("music-widget-v2", next ? "open" : "closed");
+
+    windowMotionTimerRef.current = window.setTimeout(() => {
+      if (!next) setShowExpanded(false);
+      setWindowMotion("idle");
+      windowMotionTimerRef.current = null;
+    }, PLAYER_WINDOW_TRANSITION_MS);
+  }, [open, windowMotion]);
 
   const togglePlay = useCallback(() => {
     const player = playerRef.current;
@@ -369,15 +391,30 @@ export function MusicPlayer() {
     Math.max(MIX_CUES.length - 4, 0),
   );
   const visibleCues = MIX_CUES.slice(cueWindowStart, cueWindowStart + 4);
+  const widgetClassName = [
+    "music-widget",
+    !open && windowMotion === "closing"
+      ? "music-widget--collapsing"
+      : !open
+        ? "music-widget--closed"
+        : "",
+    windowMotion === "opening" ? "music-widget--opening" : "",
+    windowMotion !== "idle" ? "music-widget--animating" : "",
+  ].filter(Boolean).join(" ");
+  const widgetStyle = openHeight === null
+    ? undefined
+    : { "--music-widget-open-height": `${openHeight}px` } as CSSProperties;
 
   return (
     <section
-      className={`music-widget${open ? "" : " music-widget--closed"}`}
+      ref={widgetRef}
+      className={widgetClassName}
+      style={widgetStyle}
       aria-label="Music player"
       aria-busy={playerRequested && !ready}
     >
       <header className="music-widget__bar">
-        {open ? (
+        {showExpanded ? (
           <>
             <h2>
               <span className="music-widget__note" aria-hidden="true">♫</span>
@@ -404,7 +441,7 @@ export function MusicPlayer() {
         )}
       </header>
 
-      {!open ? (
+      {!showExpanded ? (
         <div className="music-widget__closed-launch">
           <h2>
             <span className="music-widget__note" aria-hidden="true">♫</span>
@@ -423,7 +460,7 @@ export function MusicPlayer() {
         </div>
       ) : null}
 
-      {open ? (
+      {showExpanded ? (
         <div className="music-widget__panel" id="music-widget-panel">
           <div className="music-widget__screen">
             <div className="music-widget__library">

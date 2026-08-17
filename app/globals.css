@@ -2574,6 +2574,8 @@ canvas {
 
 /* MUSIC WIDGET — a miniature desktop player inspired by early media hardware. */
 .music-widget {
+  --player-window-duration: 580ms;
+  --player-window-ease: cubic-bezier(0.4, 0, 0.2, 1);
   position: fixed;
   top: 4.25rem;
   right: var(--rail-right);
@@ -2590,14 +2592,19 @@ canvas {
   box-shadow:
     0 0.65rem 2rem rgba(4, 14, 46, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.48);
+  contain: layout;
   font-family: var(--mono);
-  view-transition-name: music-player-window;
   transition:
-    top 240ms ease,
-    width 240ms ease,
-    background-color 240ms ease,
+    top var(--player-window-duration) var(--player-window-ease),
+    right var(--player-window-duration) var(--player-window-ease),
+    width var(--player-window-duration) var(--player-window-ease),
+    height var(--player-window-duration) var(--player-window-ease),
+    min-height var(--player-window-duration) var(--player-window-ease),
+    border-width var(--player-window-duration) var(--player-window-ease),
+    clip-path var(--player-window-duration) var(--player-window-ease),
+    background-color 280ms ease,
     opacity 280ms ease,
-    transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+    transform var(--player-window-duration) var(--player-window-ease);
 }
 
 @media (min-width: 761px) {
@@ -2613,35 +2620,44 @@ canvas {
   }
 }
 
-::view-transition-group(music-player-window) {
-  overflow: visible;
-  animation-duration: 520ms;
-  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+.music-widget--animating {
+  overflow: clip !important;
+  pointer-events: none;
+  will-change: top, right, width, height, transform;
 }
 
-::view-transition-old(music-player-window) {
-  animation: music-player-fold-out 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+.music-widget--opening .music-widget__bar > *,
+.music-widget--opening .music-widget__panel {
+  animation: music-widget-expanded-in 320ms 90ms ease-out both;
 }
 
-::view-transition-new(music-player-window) {
-  animation: music-player-fold-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+.music-widget--collapsing .music-widget__bar > *,
+.music-widget--collapsing .music-widget__panel {
+  opacity: 0;
+  transition: opacity 300ms 190ms ease-in;
 }
 
-@keyframes music-player-fold-out {
+.music-widget--closed .music-widget__bar > *,
+.music-widget--closed .music-widget__closed-launch {
+  animation: music-widget-compact-in 180ms ease-out both;
+}
+
+@keyframes music-widget-expanded-in {
+  from { opacity: 0; }
+}
+
+@keyframes music-widget-compact-in {
   from {
-    clip-path: inset(0 0 0 0);
-  }
-  to {
-    clip-path: inset(0 0 100% 0);
+    opacity: 0;
+    transform: translateY(-0.18rem);
   }
 }
 
-@keyframes music-player-fold-in {
-  from {
-    clip-path: inset(100% 0 0 0);
-  }
-  to {
-    clip-path: inset(0 0 0 0);
+@media (prefers-reduced-motion: reduce) {
+  .music-widget,
+  .music-widget * {
+    animation: none !important;
+    transition: none !important;
   }
 }
 
@@ -3241,6 +3257,7 @@ canvas {
   top: clamp(6.5rem, 10svh, 9.5rem);
   right: clamp(2.5rem, 6vw, 4.5rem);
   width: 42.25rem;
+  height: var(--music-widget-open-height, auto);
   padding: 0;
   overflow: visible;
   border: 7px solid #d9efff;
@@ -3766,10 +3783,12 @@ canvas {
 }
 
 /* Collapsed: the same two-row pixel window as in the supplied reference. */
-.music-widget--closed {
+.music-widget--closed,
+.music-widget--collapsing {
   top: clamp(7.25rem, 10.9svh, 8.5rem);
   right: clamp(2.5rem, 5.8vw, 5.375rem);
   width: 21.25rem;
+  height: 7.2rem;
   min-height: 7.2rem;
   padding: 0;
   overflow: visible;
@@ -3787,6 +3806,8 @@ canvas {
     drop-shadow(-2px 0 0 #061b63)
     drop-shadow(0 2px 0 #061b63)
     drop-shadow(0 -2px 0 #061b63);
+  opacity: 1;
+  transform: none;
   clip-path: polygon(
     6px 0,
     calc(100% - 6px) 0,
