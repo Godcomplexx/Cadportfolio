@@ -1,6 +1,5 @@
 import type { Metadata } from "vinext/shims/metadata";
 import { MotionSystem } from "@/components/MotionSystem";
-import { MusicPlayer } from "@/components/MusicPlayer";
 import { SiteLoader } from "@/components/SiteLoader";
 import { ElementPicker } from "@/components/ElementPicker";
 import { SmoothScrollFrame } from "@/components/SmoothScrollFrame";
@@ -78,7 +77,6 @@ export default function RootLayout({
           {children}
         </SmoothScrollFrame>
         {process.env.NODE_ENV === "development" ? <ElementPicker /> : null}
-        <MusicPlayer />
         <MotionSystem />
       </body>
     </html>

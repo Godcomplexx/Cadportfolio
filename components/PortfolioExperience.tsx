@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type CSSProperties } from "react";
 import { HeroTurntable } from "@/components/HeroTurntable";
+import { MusicPlayer } from "@/components/MusicPlayer";
 import { Scramble } from "@/components/Scramble";
 import { WorkIndex } from "@/components/WorkIndex";
 import { featuredProjects, projectIndex, type Project } from "@/lib/projects";
@@ -25,6 +26,14 @@ const navigation = [
 
 type SectionId = (typeof navigation)[number]["id"];
 type StyleVariables = CSSProperties & Record<`--${string}`, string | number>;
+
+/* Hero callouts. Three, stacked down the left of the object with leader lines
+   running toward it — four smaller ones read as noise rather than annotation. */
+const heroCallouts = [
+  { id: "01", label: "Enclosure" },
+  { id: "02", label: "Interaction" },
+  { id: "03", label: "Embedded system" },
+] as const;
 
 const disciplines = [
   {
@@ -330,6 +339,7 @@ export function PortfolioExperience() {
         <a className="site-rail__brand" href="#top" aria-label="Daria Melnikova, home">
           DD<span>.studio</span>
         </a>
+        <MusicPlayer />
         {/* data-text feeds the CSS glitch layers; see .site-rail__links a. */}
         <div className="site-rail__links">
           {navigation.slice(1).map(({ id, label }) => (
@@ -382,23 +392,47 @@ export function PortfolioExperience() {
       <section className="scene system-hero" id="top" aria-labelledby="hero-title" aria-label="Introduction">
         <div className="system-hero__field depth-0" data-depth="0" aria-hidden="true" />
         <div className="system-hero__glow depth-1" data-depth="1" aria-hidden="true"><span /><span /></div>
-        <p className="system-hero__ghost depth-2" data-depth="2" aria-hidden="true">DARIA</p>
 
         <div className="system-hero__model depth-3" data-depth="3">
           <HeroTurntable />
         </div>
 
+        {/* Section marker. Replaces the old full-bleed ghost word: quiet, small
+            and to the side, so the background states a fact instead of
+            competing with the object for attention. */}
+        <p className="system-hero__marker depth-2" data-depth="2" aria-hidden="true">
+          01 / Current practice
+        </p>
+
+        {/* Technical callouts. Decorative annotation of the object rather than
+            content, so the whole layer is hidden from assistive tech — the same
+            themes are stated as text in the card. */}
+        <ul className="system-hero__callouts depth-4" data-depth="4" aria-hidden="true">
+          {heroCallouts.map(({ id, label }) => (
+            <li key={id} className="system-hero__callout">
+              <span><b>{id}</b> {label}</span>
+              <i />
+            </li>
+          ))}
+        </ul>
+
+        {/* Name block only. The supporting line and the role card were pulled
+            out: three separate statements across the top read as three headers
+            and flattened the hierarchy. */}
         <header className="system-hero__intro depth-4" data-depth="4">
-          <div>
-            <p>R&amp;D, Product<br />Systems &amp; CAD</p>
-            <h1 id="hero-title">Daria<br />Melnikova</h1>
-          </div>
-          <p>Thinking in form.<br />Building with proof.</p>
-          <p>
-            I design physical systems from form and internal architecture to
-            electronics, embedded behavior and working prototypes.
-          </p>
+          <p>R&amp;D, Product<br />Systems &amp; CAD</p>
+          <h1 id="hero-title">Daria<br />Melnikova</h1>
         </header>
+
+        {/* Sits beside the object rather than in the top rail, so the right of
+            the composition carries meaning instead of a second masthead. */}
+        <dl className="system-hero__card depth-4" data-depth="4">
+          <dt>Designing /</dt>
+          <dd>Physical systems</dd>
+          <dd>Embedded behavior</dd>
+          <dd>Internal architecture</dd>
+          <dd>Working prototypes</dd>
+        </dl>
 
         <p
           className="system-hero__manifesto depth-4"
@@ -414,7 +448,8 @@ export function PortfolioExperience() {
         </p>
 
         <a className="system-hero__scroll glitch-trigger depth-4" data-depth="4" href="#work">
-          <HudGlitch text="Scroll to work" /> <span aria-hidden="true">↓</span>
+          <HudGlitch text="Scroll to work" />
+          <span aria-hidden="true">↓</span>
         </a>
         <div className="system-hero__cursor-mark depth-5" data-depth="5" aria-hidden="true" />
       </section>
