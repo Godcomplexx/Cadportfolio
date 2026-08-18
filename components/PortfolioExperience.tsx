@@ -196,6 +196,12 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
         <p className="project-tile__strapline" data-reveal="line">
           {project.strapline}
         </p>
+        {/* The overview carries the actual scope and the honest limits of the
+            build. It was written in the data but never rendered, which left the
+            case resting on a one-line strapline. */}
+        <p className="project-tile__overview" data-reveal="line">
+          {project.overview}
+        </p>
         <dl className="project-tile__facts" data-reveal="block">
           <div>
             <dt>My role</dt>
@@ -206,6 +212,31 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
             <dd>{firstSentence(project.result)}</dd>
           </div>
         </dl>
+
+        {/* Hard specification. For a hardware role this is the most convincing
+            content on the page — concrete parts and measured test counts. */}
+        <dl className="project-tile__spec" data-reveal="block">
+          {project.details.map((detail) => (
+            <div key={detail.label}>
+              <dt>{detail.label}</dt>
+              <dd>{detail.value}</dd>
+            </div>
+          ))}
+        </dl>
+        {/* How the thing was actually built. Reviewers hire for process as much
+            as outcome, and these steps were sitting unused in the data. */}
+        <ol className="project-tile__process" data-reveal="block">
+          {project.development.map((step, stepIndex) => (
+            <li key={step.title}>
+              <span aria-hidden="true">{String(stepIndex + 1).padStart(2, "0")}</span>
+              <div>
+                <strong>{step.title}</strong>
+                <p>{step.text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+
         <div className="project-tile__evidence" data-reveal="block">
           <div>
             <span>Verified</span>
@@ -221,8 +252,10 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
           </div>
         </div>
         <footer className="project-tile__footer">
+          {/* Full stack, not the first three: these are the exact keywords a
+              technical reviewer scans for. */}
           <ul aria-label={`${project.title} tools`}>
-            {project.tools.slice(0, 3).map((tool) => <li key={tool}>{tool}</li>)}
+            {project.tools.map((tool) => <li key={tool}>{tool}</li>)}
           </ul>
           {project.source ? (
             <a className="glitch-trigger" href={project.source.href} target="_blank" rel="noreferrer">
