@@ -1,60 +1,64 @@
-import type { CSSProperties } from "react";
-import type { Project } from "@/lib/projects";
+import type { ProjectIndexEntry } from "@/lib/projects";
 import { Words } from "@/components/Words";
 
-const accents = ["#8ef07a", "#62efff", "#ff6bdd", "#c3b8ff"] as const;
+export function WorkIndex({ projects }: { projects: ProjectIndexEntry[] }) {
+  const categories = [...new Set(projects.map((project) => project.category))];
 
-/**
- * Compact work index on the 12-column grid — several projects visible at once,
- * each a preview card linking through to the full case.
- */
-export function WorkIndex({ projects }: { projects: Project[] }) {
   return (
-    <section className="work-index grid12" id="work" aria-labelledby="work-title">
+    <section
+      className="work-index grid12"
+      id="work"
+      aria-labelledby="project-index-title"
+    >
       <header className="work-index__head">
-        <Words as="h2" className="t-display" text="Selected work" />
+        <div>
+          <p className="section-kicker">All work / current stage</p>
+          <Words
+            as="h2"
+            className="t-display"
+            id="project-index-title"
+            text="Project index"
+          />
+        </div>
         <p className="t-label">
           {String(projects.length).padStart(2, "0")} projects / 2025—2026
         </p>
       </header>
 
-      {projects.map((project, index) => (
-        <a
-          className="work-card"
-          key={project.key}
-          href={`#project-${project.key}`}
-          style={{ "--project-accent": accents[index % accents.length] } as CSSProperties}
-          data-reveal="block"
-        >
-          <div className="work-card__frame" data-index={project.number}>
-            {project.actualImage ? (
-              <img
-                src={project.actualImage}
-                alt={project.actualImageAlt ?? ""}
-                loading="lazy"
-              />
-            ) : null}
-            <span
-              className="project-border-motion depth-5"
-              data-reveal="border"
-              data-depth="5"
-              data-fixed-depth
-              aria-hidden="true"
-            />
-            <span className="work-card__tag">{project.status}</span>
-          </div>
-          <div className="work-card__line">
-            <span>{project.shortTitle}</span>
-            <div>
+      <ul className="work-index__legend" aria-label="Project categories">
+        {categories.map((category) => <li key={category}>{category}</li>)}
+      </ul>
+
+      <div className="work-index__list">
+        {projects.map((project) => {
+          const content = (
+            <>
+              <span className="work-index__number">{project.number}</span>
+              <span className="work-index__title">{project.title}</span>
+              <span className="work-index__category">{project.category}</span>
+              <span className="work-index__status">{project.status}</span>
               <time dateTime={project.year}>{project.year}</time>
-              <span className="work-card__cat">
-                {project.category}
-                <i aria-hidden="true">↗</i>
-              </span>
+              <i aria-hidden="true">{project.href ? "↗" : "—"}</i>
+            </>
+          );
+
+          return project.href ? (
+            <a
+              className="work-index__row"
+              href={project.href}
+              key={project.key}
+              target={project.external ? "_blank" : undefined}
+              rel={project.external ? "noreferrer" : undefined}
+            >
+              {content}
+            </a>
+          ) : (
+            <div className="work-index__row work-index__row--pending" key={project.key}>
+              {content}
             </div>
-          </div>
-        </a>
-      ))}
+          );
+        })}
+      </div>
     </section>
   );
 }

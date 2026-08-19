@@ -2,9 +2,10 @@
 
 import { useEffect, useState, type CSSProperties } from "react";
 import { HeroTurntable } from "@/components/HeroTurntable";
+import { MusicPlayer } from "@/components/MusicPlayer";
 import { Scramble } from "@/components/Scramble";
 import { WorkIndex } from "@/components/WorkIndex";
-import { projects, type Project } from "@/lib/projects";
+import { featuredProjects, projectIndex, type Project } from "@/lib/projects";
 
 const cvUrl =
   "https://godcomplexx.github.io/portfolio/resume/daria_melnikova_resume_print.html";
@@ -26,30 +27,38 @@ const navigation = [
 type SectionId = (typeof navigation)[number]["id"];
 type StyleVariables = CSSProperties & Record<`--${string}`, string | number>;
 
+/* Hero callouts. Three, stacked down the left of the object with leader lines
+   running toward it — four smaller ones read as noise rather than annotation. */
+const heroCallouts = [
+  { id: "01", label: "Enclosure" },
+  { id: "02", label: "Interaction" },
+  { id: "03", label: "Embedded system" },
+] as const;
+
 const disciplines = [
   {
     number: "01",
-    title: "CAD & Mechanical",
+    title: "Product / Mechanical",
     text: "Enclosures, parts and assembly logic.",
     tags: "FORM / FIT / ASSEMBLY",
   },
   {
     number: "02",
-    title: "3D & Motion",
-    text: "Materials, light and product stories.",
-    tags: "LIGHT / MATERIAL / STORY",
-  },
-  {
-    number: "03",
-    title: "Hardware",
+    title: "Embedded Hardware",
     text: "Electronics, sensors and working behavior.",
     tags: "BOARD / SIGNAL / TEST",
   },
   {
+    number: "03",
+    title: "Visualization / Motion",
+    text: "Materials, light and product stories.",
+    tags: "LIGHT / MATERIAL / STORY",
+  },
+  {
     number: "04",
-    title: "Reconstruction",
-    text: "Capture, cleanup, UVs and texture.",
-    tags: "CAPTURE / MESH / TEXTURE",
+    title: "Applied Computation",
+    text: "ML, computer vision and biomedical systems.",
+    tags: "MODEL / VISION / SIGNAL",
   },
 ] as const;
 
@@ -179,13 +188,19 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
 
       <div className="project-tile__copy depth-4" data-depth="4">
         <p className="project-tile__meta" data-reveal="line">
-          {project.number} / 04 &nbsp; {project.year} &nbsp; {project.status}
+          {project.number} / {String(featuredProjects.length).padStart(2, "0")} &nbsp; {project.year} &nbsp; {project.status}
         </p>
         <h3 id={`project-title-${project.key}`} data-reveal="text">
           {project.key === "smartmotion" ? <><span>Smart</span><br /><span>Motion</span></> : project.shortTitle}
         </h3>
         <p className="project-tile__strapline" data-reveal="line">
           {project.strapline}
+        </p>
+        {/* The overview carries the actual scope and the honest limits of the
+            build. It was written in the data but never rendered, which left the
+            case resting on a one-line strapline. */}
+        <p className="project-tile__overview" data-reveal="line">
+          {project.overview}
         </p>
         <dl className="project-tile__facts" data-reveal="block">
           <div>
@@ -197,9 +212,50 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
             <dd>{firstSentence(project.result)}</dd>
           </div>
         </dl>
+
+        {/* Hard specification. For a hardware role this is the most convincing
+            content on the page — concrete parts and measured test counts. */}
+        <dl className="project-tile__spec" data-reveal="block">
+          {project.details.map((detail) => (
+            <div key={detail.label}>
+              <dt>{detail.label}</dt>
+              <dd>{detail.value}</dd>
+            </div>
+          ))}
+        </dl>
+        {/* How the thing was actually built. Reviewers hire for process as much
+            as outcome, and these steps were sitting unused in the data. */}
+        <ol className="project-tile__process" data-reveal="block">
+          {project.development.map((step, stepIndex) => (
+            <li key={step.title}>
+              <span aria-hidden="true">{String(stepIndex + 1).padStart(2, "0")}</span>
+              <div>
+                <strong>{step.title}</strong>
+                <p>{step.text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+
+        <div className="project-tile__evidence" data-reveal="block">
+          <div>
+            <span>Verified</span>
+            <ul>
+              {project.evidence.verified.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </div>
+          <div>
+            <span>Next proof</span>
+            <ul>
+              {project.evidence.next.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </div>
+        </div>
         <footer className="project-tile__footer">
+          {/* Full stack, not the first three: these are the exact keywords a
+              technical reviewer scans for. */}
           <ul aria-label={`${project.title} tools`}>
-            {project.tools.slice(0, 3).map((tool) => <li key={tool}>{tool}</li>)}
+            {project.tools.map((tool) => <li key={tool}>{tool}</li>)}
           </ul>
           {project.source ? (
             <a className="glitch-trigger" href={project.source.href} target="_blank" rel="noreferrer">
@@ -214,7 +270,7 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
       </div>
 
       <span className="project-tile__label depth-5" data-depth="5" aria-hidden="true">
-        {index === 0 ? "WORKING PROTOTYPE" : "SELECTED CASE"}
+        {index === 0 ? "FEATURED SYSTEM" : "WORKING PROTOTYPE"}
       </span>
     </article>
   );
@@ -222,6 +278,7 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
 
 export function PortfolioExperience() {
   const [activeSection, setActiveSection] = useState<SectionId>("top");
+  const [isPastHero, setIsPastHero] = useState(false);
   const [viewportLabel, setViewportLabel] = useState("0000 X 0000");
   const [clock, setClock] = useState("--:--");
   const [pointer, setPointer] = useState("0000 X 0000 Y");
@@ -290,12 +347,32 @@ export function PortfolioExperience() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const scrollRoot = document.querySelector<HTMLElement>("[data-scroll-container]");
+    if (!scrollRoot) return;
+
+    const updateInterfaceMode = () => {
+      setIsPastHero(scrollRoot.scrollTop > window.innerHeight * 0.72);
+    };
+
+    updateInterfaceMode();
+    scrollRoot.addEventListener("scroll", updateInterfaceMode, { passive: true });
+    window.addEventListener("resize", updateInterfaceMode);
+    return () => {
+      scrollRoot.removeEventListener("scroll", updateInterfaceMode);
+      window.removeEventListener("resize", updateInterfaceMode);
+    };
+  }, []);
+
   return (
-    <div className="system-portfolio">
+    <div
+      className={`system-portfolio ${isPastHero ? "system-portfolio--content" : ""}`}
+    >
       <nav className="site-rail" aria-label="Primary navigation">
         <a className="site-rail__brand" href="#top" aria-label="Daria Melnikova, home">
           DD<span>.studio</span>
         </a>
+        <MusicPlayer />
         {/* data-text feeds the CSS glitch layers; see .site-rail__links a. */}
         <div className="site-rail__links">
           {navigation.slice(1).map(({ id, label }) => (
@@ -348,23 +425,47 @@ export function PortfolioExperience() {
       <section className="scene system-hero" id="top" aria-labelledby="hero-title" aria-label="Introduction">
         <div className="system-hero__field depth-0" data-depth="0" aria-hidden="true" />
         <div className="system-hero__glow depth-1" data-depth="1" aria-hidden="true"><span /><span /></div>
-        <p className="system-hero__ghost depth-2" data-depth="2" aria-hidden="true">DARIA</p>
 
         <div className="system-hero__model depth-3" data-depth="3">
           <HeroTurntable />
         </div>
 
+        {/* Section marker. Replaces the old full-bleed ghost word: quiet, small
+            and to the side, so the background states a fact instead of
+            competing with the object for attention. */}
+        <p className="system-hero__marker depth-2" data-depth="2" aria-hidden="true">
+          01 / Current practice
+        </p>
+
+        {/* Technical callouts. Decorative annotation of the object rather than
+            content, so the whole layer is hidden from assistive tech — the same
+            themes are stated as text in the card. */}
+        <ul className="system-hero__callouts depth-4" data-depth="4" aria-hidden="true">
+          {heroCallouts.map(({ id, label }) => (
+            <li key={id} className="system-hero__callout">
+              <span><b>{id}</b> {label}</span>
+              <i />
+            </li>
+          ))}
+        </ul>
+
+        {/* Name block only. The supporting line and the role card were pulled
+            out: three separate statements across the top read as three headers
+            and flattened the hierarchy. */}
         <header className="system-hero__intro depth-4" data-depth="4">
-          <div>
-            <p>3D, CAD &amp;<br />Product Prototyping</p>
-            <h1 id="hero-title">Daria<br />Melnikova</h1>
-          </div>
-          <p>Thinking in form.<br />Building with proof.</p>
-          <p>
-            I design compact physical products and turn ideas into CAD models,
-            visual stories and working prototypes.
-          </p>
+          <p>R&amp;D, Product<br />Systems &amp; CAD</p>
+          <h1 id="hero-title">Daria<br />Melnikova</h1>
         </header>
+
+        {/* Sits beside the object rather than in the top rail, so the right of
+            the composition carries meaning instead of a second masthead. */}
+        <dl className="system-hero__card depth-4" data-depth="4">
+          <dt>Designing /</dt>
+          <dd>Physical systems</dd>
+          <dd>Embedded behavior</dd>
+          <dd>Internal architecture</dd>
+          <dd>Working prototypes</dd>
+        </dl>
 
         <p
           className="system-hero__manifesto depth-4"
@@ -380,7 +481,8 @@ export function PortfolioExperience() {
         </p>
 
         <a className="system-hero__scroll glitch-trigger depth-4" data-depth="4" href="#work">
-          <HudGlitch text="Scroll to work" /> <span aria-hidden="true">↓</span>
+          <HudGlitch text="Scroll to work" />
+          <span aria-hidden="true">↓</span>
         </a>
         <div className="system-hero__cursor-mark depth-5" data-depth="5" aria-hidden="true" />
       </section>
@@ -392,23 +494,25 @@ export function PortfolioExperience() {
         <div className="fog-bridge__cloud fog-bridge__cloud--front depth-5" data-depth="5" data-fog-layer="front"><span /><span /></div>
       </div>
 
-      <WorkIndex projects={projects} />
+      <WorkIndex projects={projectIndex} />
 
-      <section className="work-section" aria-labelledby="work-title">
+      <section className="work-section" id="featured-work" aria-labelledby="work-title">
         <header className="scene work-intro">
           <div className="work-intro__field depth-0" data-depth="0" aria-hidden="true" />
           <div className="work-intro__glow depth-1" data-depth="1" aria-hidden="true" />
-          <p className="work-intro__index depth-2" data-depth="2" aria-hidden="true">01—04</p>
+          <p className="work-intro__index depth-2" data-depth="2" aria-hidden="true">
+            01—{String(featuredProjects.length).padStart(2, "0")}
+          </p>
           <div className="work-intro__copy depth-4" data-depth="4">
             <p className="section-kicker" data-reveal="line">Selected systems / 2025—2026</p>
             <h2 id="work-title" data-reveal="text">SELECTED<br />WORK</h2>
-            <p data-reveal="line">CAD, hardware, motion and reconstruction — shown at their real stage.</p>
+            <p data-reveal="line">Two working systems — shown through real builds, behavior and next proof.</p>
           </div>
           <p className="work-intro__note depth-5" data-depth="5" aria-hidden="true">FORM / SIGNAL / PROOF</p>
         </header>
 
         <div className="project-gallery">
-          {projects.map((project, index) => (
+          {featuredProjects.map((project, index) => (
             <ProjectTile project={project} index={index} key={project.key} />
           ))}
         </div>

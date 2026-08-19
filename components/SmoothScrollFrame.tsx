@@ -23,18 +23,60 @@ export function SmoothScrollFrame({ children }: { children: ReactNode }) {
       window.history.scrollRestoration = "manual";
     }
 
-    if (reducedMotion) return;
+    const scrollToHashWithoutMotion = () => {
+      if (!window.location.hash) return;
+
+      const target = document.getElementById(
+        decodeURIComponent(window.location.hash.slice(1)),
+      );
+      if (!target) return;
+
+      const top =
+        target.getBoundingClientRect().top -
+        wrapper.getBoundingClientRect().top +
+        wrapper.scrollTop;
+      wrapper.scrollTo({ top, behavior: "auto" });
+    };
+
+    if (reducedMotion) {
+      const hashFrame = window.requestAnimationFrame(scrollToHashWithoutMotion);
+      window.addEventListener("hashchange", scrollToHashWithoutMotion);
+      return () => {
+        window.cancelAnimationFrame(hashFrame);
+        window.removeEventListener("hashchange", scrollToHashWithoutMotion);
+      };
+    }
 
     const lenis = new Lenis({
       wrapper,
       content,
       eventsTarget: wrapper,
-      lerp: 0.1,
+      // Responsive enough to preserve wheel intent; scroll-linked motion uses
+      // only a short scrub, so the page no longer smooths the same input twice.
+      lerp: 0.18,
       smoothWheel: true,
       syncTouch: true,
       anchors: true,
       autoRaf: false,
       overscroll: false,
+    });
+
+    const scrollToHash = () => {
+      if (!window.location.hash) return;
+
+      const target = document.getElementById(
+        decodeURIComponent(window.location.hash.slice(1)),
+      );
+      if (target) lenis.scrollTo(target, { immediate: true });
+    };
+
+    let hashFrame = window.requestAnimationFrame(() => {
+      // Browsers may try to resolve the fragment before Lenis owns the nested
+      // scroll container. Reset that native jump, then resolve it once against
+      // Lenis so shared URLs land on the same position as clicked links.
+      wrapper.scrollTop = 0;
+      window.scrollTo(0, 0);
+      hashFrame = window.requestAnimationFrame(scrollToHash);
     });
 
     let frame = 0;
@@ -46,6 +88,7 @@ export function SmoothScrollFrame({ children }: { children: ReactNode }) {
     frame = window.requestAnimationFrame(raf);
 
     return () => {
+      window.cancelAnimationFrame(hashFrame);
       window.cancelAnimationFrame(frame);
       lenis.destroy();
     };

@@ -9,12 +9,9 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
-import { flushSync } from "react-dom";
 import {
   MIX_CUES,
-  PLAYLIST_OWNER,
   YOUTUBE_MIX_AUTHOR,
-  YOUTUBE_MIX_COVER,
   YOUTUBE_MIX_ID,
   YOUTUBE_MIX_TITLE,
   YOUTUBE_MIX_URL,
@@ -49,10 +46,6 @@ type YouTubeNamespace = {
   PlayerState: { ENDED: number; PLAYING: number; PAUSED: number };
 };
 
-type ViewTransitionDocument = Document & {
-  startViewTransition?: (update: () => void) => { finished: Promise<void> };
-};
-
 declare global {
   interface Window {
     YT?: YouTubeNamespace;
@@ -61,11 +54,13 @@ declare global {
 }
 
 let apiPromise: Promise<YouTubeNamespace> | null = null;
+/* Set to "off" once the visitor pauses, so the next visit stays silent. */
+const AUTOPLAY_KEY = "music-autoplay";
 
 function loadYouTubeApi(): Promise<YouTubeNamespace> {
   if (apiPromise) return apiPromise;
 
-  apiPromise = new Promise<YouTubeNamespace>((resolve, reject) => {
+  const request = new Promise<YouTubeNamespace>((resolve, reject) => {
     if (window.YT?.Player) {
       resolve(window.YT);
       return;
@@ -85,6 +80,12 @@ function loadYouTubeApi(): Promise<YouTubeNamespace> {
       script.onerror = () => reject(new Error("Failed to load the YouTube API"));
       document.head.appendChild(script);
     }
+  });
+
+  apiPromise = request.catch((error) => {
+    // A failed network request must be retryable from the Play button.
+    apiPromise = null;
+    throw error;
   });
 
   return apiPromise;
@@ -121,27 +122,78 @@ function PixelIcon({ name, children }: { name: string; children: ReactNode }) {
   );
 }
 
+/* Equaliser shape. Must match --eq-levels in globals.css. */
+const EQ_BARS = 9;
+const EQ_LEVELS = 7;
+/* Bars are refreshed on their own clock rather than every frame: a real LED
+   meter steps, and 60fps updates would blur the pixel grid into a smear. */
+const EQ_FRAME_MS = 70;
+
+/* Per-bar weighting. Lows sit fuller and move slower, highs are spikier — the
+   same silhouette a spectrum analyser gives, without any spectrum data. */
+const EQ_BAND_WEIGHT = [1, 0.96, 0.9, 0.82, 0.74, 0.66, 0.58, 0.5, 0.42];
+const EQ_BAND_SPEED = [1.7, 2.3, 3.1, 3.7, 4.3, 5.1, 5.9, 6.7, 7.3];
+
+/* Deterministic value noise: smooth, seedable and cheap. Interpolating between
+   integer steps keeps a bar from teleporting between unrelated heights. */
+function noiseAt(x: number, seed: number) {
+  const hash = (n: number) => {
+    const v = Math.sin(n * 127.1 + seed * 311.7) * 43758.5453;
+    return v - Math.floor(v);
+  };
+  const i = Math.floor(x);
+  const f = x - i;
+  // Smoothstep between the two neighbouring integer samples.
+  const t = f * f * (3 - 2 * f);
+  return hash(i) * (1 - t) + hash(i + 1) * t;
+}
+
 export function MusicPlayer() {
-  const [open, setOpen] = useState(true);
   const [ready, setReady] = useState(false);
   const [playing, setPlaying] = useState(false);
-  const [volume, setVolume] = useState(70);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [failed, setFailed] = useState(false);
+  const [playerRequested, setPlayerRequested] = useState(false);
 
   const hostRef = useRef<HTMLDivElement>(null);
   // Written to directly each frame, bypassing React for the moving fill.
   const progressRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YouTubePlayer | null>(null);
+  const pendingPlayRef = useRef(false);
+  const eqRef = useRef<HTMLSpanElement>(null);
 
+  // Browsers refuse to start audio before the visitor has interacted with the
+  // page, so autoplay cannot fire on load — the first click, key or scroll is
+  // the earliest a play() call will be honoured. A visitor who paused last
+  // visit is left alone.
   useEffect(() => {
-    if (window.localStorage.getItem("music-widget-v2") !== "closed") return;
-    const restore = window.setTimeout(() => setOpen(false), 0);
-    return () => window.clearTimeout(restore);
+    if (window.localStorage.getItem(AUTOPLAY_KEY) === "off") return;
+
+    const events = ["pointerdown", "keydown", "wheel", "touchstart"] as const;
+
+    const start = () => {
+      stop();
+      pendingPlayRef.current = true;
+      setPlayerRequested(true);
+    };
+
+    function stop() {
+      events.forEach((name) => window.removeEventListener(name, start));
+    }
+
+    events.forEach((name) =>
+      window.addEventListener(name, start, { once: true, passive: true }),
+    );
+
+    return stop;
   }, []);
 
   useEffect(() => {
+    // Keep the landing page free of YouTube scripts and iframes until the
+    // visitor explicitly asks for audio.
+    if (!playerRequested) return;
+
     const host = hostRef.current;
     if (!host) return;
 
@@ -153,6 +205,51 @@ export function MusicPlayer() {
 
     let disposed = false;
     let poll = 0;
+    let playerIsPlaying = false;
+    let lastShown = -1;
+
+    const stopPolling = () => {
+      window.cancelAnimationFrame(poll);
+      poll = 0;
+    };
+
+    const syncProgress = () => {
+      const current = playerRef.current;
+      if (!current?.getCurrentTime) return;
+
+      const elapsed = current.getCurrentTime();
+      const whole = Math.floor(elapsed);
+      if (whole !== lastShown) {
+        lastShown = whole;
+        setCurrentTime(elapsed);
+      }
+
+      const total = current.getDuration();
+      if (total > 0) setDuration((value) => (value === total ? value : total));
+      progressRef.current?.style.setProperty(
+        "--player-progress",
+        `${total > 0 ? Math.min((elapsed / total) * 100, 100) : 0}%`,
+      );
+    };
+
+    const tick = () => {
+      poll = 0;
+      if (disposed || !playerIsPlaying || document.hidden) return;
+      syncProgress();
+      poll = window.requestAnimationFrame(tick);
+    };
+
+    const startPolling = () => {
+      if (!poll && playerIsPlaying && !document.hidden) {
+        poll = window.requestAnimationFrame(tick);
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (document.hidden) stopPolling();
+      else startPolling();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     loadYouTubeApi()
       .then((YT) => {
@@ -178,12 +275,22 @@ export function MusicPlayer() {
               setFailed(false);
               setDuration(total);
               event.target.setVolume(70);
+              if (pendingPlayRef.current) {
+                pendingPlayRef.current = false;
+                event.target.playVideo();
+              }
             },
             onStateChange: (event) => {
               if (disposed) return;
-              setPlaying(event.data === YT.PlayerState.PLAYING);
+              playerIsPlaying = event.data === YT.PlayerState.PLAYING;
+              setPlaying(playerIsPlaying);
               const total = event.target.getDuration();
               if (total > 0) setDuration(total);
+              if (playerIsPlaying) startPolling();
+              else {
+                stopPolling();
+                syncProgress();
+              }
               if (event.data === YT.PlayerState.ENDED) {
                 setCurrentTime(total);
               }
@@ -195,105 +302,88 @@ export function MusicPlayer() {
         });
 
         playerRef.current = player;
-
-        // Drive the read-out from rAF so updates land in step with the
-        // browser's paint cycle. A setInterval fires on its own schedule and
-        // its state writes miss frames, which is what made the bar stutter.
-        let lastShown = -1;
-        const tick = () => {
-          poll = window.requestAnimationFrame(tick);
-          const current = playerRef.current;
-          if (!current?.getCurrentTime) return;
-
-          const elapsed = current.getCurrentTime();
-          // The clock only renders whole seconds, so re-render at most once
-          // per second instead of on every frame.
-          const whole = Math.floor(elapsed);
-          if (whole !== lastShown) {
-            lastShown = whole;
-            setCurrentTime(elapsed);
-          }
-
-          const total = current.getDuration();
-          if (total > 0) setDuration((value) => (value === total ? value : total));
-
-          // The bar itself is moved through a CSS variable — no React render,
-          // so the fill stays smooth between the once-a-second updates.
-          progressRef.current?.style.setProperty(
-            "--player-progress",
-            `${total > 0 ? Math.min((elapsed / total) * 100, 100) : 0}%`,
-          );
-        };
-        poll = window.requestAnimationFrame(tick);
       })
       .catch(() => {
-        if (!disposed) setFailed(true);
+        if (!disposed) {
+          pendingPlayRef.current = false;
+          setFailed(true);
+          setPlayerRequested(false);
+        }
       });
 
     return () => {
       disposed = true;
-      window.cancelAnimationFrame(poll);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      stopPolling();
       playerRef.current?.destroy?.();
       playerRef.current = null;
       host.replaceChildren();
     };
-  }, []);
+  }, [playerRequested]);
 
-  const toggleOpen = useCallback(() => {
-    const update = () => {
-      setOpen((current) => {
-        const next = !current;
-        window.localStorage.setItem("music-widget-v2", next ? "open" : "closed");
-        return next;
+  // Drive the meter. Levels are written straight to CSS custom properties so a
+  // 14fps animation never triggers a React render.
+  useEffect(() => {
+    const eq = eqRef.current;
+    if (!eq) return;
+
+    const bars = Array.from(eq.querySelectorAll<HTMLElement>("i"));
+    const setLevels = (levels: number[]) => {
+      bars.forEach((bar, index) => {
+        bar.style.setProperty("--eq-level", String(levels[index]));
       });
     };
 
-    const transitionDocument = document as ViewTransitionDocument;
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!transitionDocument.startViewTransition || reduceMotion) {
-      update();
+    if (!playing) {
+      // Settle to the floor rather than freezing mid-spike.
+      setLevels(bars.map(() => 1));
       return;
     }
 
-    transitionDocument.startViewTransition(() => {
-      flushSync(update);
-    });
-  }, []);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let timer = 0;
+    const started = performance.now();
+
+    const step = () => {
+      // Clock the walk off elapsed time, not frame count, so a throttled
+      // background tab resumes in phase instead of lurching.
+      const seconds = (performance.now() - started) / 1000;
+
+      setLevels(
+        bars.map((_, index) => {
+          const weight = EQ_BAND_WEIGHT[index] ?? 0.5;
+          const speed = EQ_BAND_SPEED[index] ?? 4;
+          // Two octaves of noise: a slow body plus a faster flicker.
+          const body = noiseAt(seconds * speed, index);
+          const flicker = noiseAt(seconds * speed * 2.4, index + 40) * 0.35;
+          const amplitude = Math.min(body * 0.85 + flicker, 1) * weight;
+          return Math.max(1, Math.round(amplitude * EQ_LEVELS));
+        }),
+      );
+
+      timer = window.setTimeout(step, EQ_FRAME_MS);
+    };
+
+    step();
+    return () => window.clearTimeout(timer);
+  }, [playing]);
 
   const togglePlay = useCallback(() => {
+    // Pressing the button is an explicit choice and overrides the remembered
+    // one in both directions.
+    window.localStorage.setItem(AUTOPLAY_KEY, playing ? "off" : "on");
+
     const player = playerRef.current;
-    if (!player) return;
+    if (!player) {
+      pendingPlayRef.current = true;
+      setFailed(false);
+      setPlayerRequested(true);
+      return;
+    }
     if (playing) player.pauseVideo();
     else player.playVideo();
   }, [playing]);
-
-  const seekBy = useCallback((seconds: number) => {
-    const player = playerRef.current;
-    if (!player) return;
-    const total = player.getDuration();
-    const next = Math.min(Math.max(player.getCurrentTime() + seconds, 0), total || Infinity);
-    player.seekTo(next, true);
-    setCurrentTime(next);
-  }, []);
-
-  const seekToCue = useCallback((cueIndex: number) => {
-    const player = playerRef.current;
-    if (!player) return;
-    const next = MIX_CUES[cueIndex]?.startSeconds;
-    if (next === undefined) return;
-    player.seekTo(next, true);
-    setCurrentTime(next);
-  }, []);
-
-  const seekRandom = useCallback(() => {
-    const player = playerRef.current;
-    if (!player) return;
-    const total = player.getDuration();
-    if (!total) return;
-    const next = Math.random() * Math.max(total - 5, 0);
-    player.seekTo(next, true);
-    setCurrentTime(next);
-  }, []);
 
   const scrub = useCallback(
     (event: MouseEvent<HTMLDivElement>) => {
@@ -308,207 +398,74 @@ export function MusicPlayer() {
     [duration],
   );
 
-  const changeVolume = useCallback((next: number) => {
-    setVolume(next);
-    playerRef.current?.setVolume(next);
-  }, []);
-
   const progress = duration > 0 ? Math.min((currentTime / duration) * 100, 100) : 0;
   const progressStyle = { "--player-progress": `${progress}%` } as CSSProperties;
-  const activeCueIndex = cueIndexAt(currentTime);
-  const activeCue = MIX_CUES[activeCueIndex];
-  const cueWindowStart = Math.min(
-    Math.max(activeCueIndex - 1, 0),
-    Math.max(MIX_CUES.length - 4, 0),
-  );
-  const visibleCues = MIX_CUES.slice(cueWindowStart, cueWindowStart + 4);
+  const activeCue = MIX_CUES[cueIndexAt(currentTime)];
+  const loading = playerRequested && !ready;
 
   return (
-    <section
-      className={`music-widget${open ? "" : " music-widget--closed"}`}
+    <div
+      className={`music-rail${playing ? " music-rail--playing" : ""}`}
       aria-label="Music player"
+      aria-busy={loading}
     >
-      <header className="music-widget__bar">
-        {open ? (
-          <>
-            <h2>
-              <span className="music-widget__note" aria-hidden="true">♫</span>
-              Now playing
-            </h2>
-            <span className="music-widget__window-actions" aria-label="Window controls">
-              <button type="button" onClick={toggleOpen} aria-label="Minimize player">
-                <PixelIcon name="minimize"><path d="M6 23h20v3H6z" /></PixelIcon>
-              </button>
-              <span className="music-widget__window-max" aria-hidden="true">
-                <PixelIcon name="maximize"><path d="M5 5h22v22H5zm3 3v16h16V8z" /></PixelIcon>
-              </span>
-              <button type="button" onClick={toggleOpen} aria-label="Close player">
-                <PixelIcon name="close"><path d="m7 5 9 9 9-9 2 2-9 9 9 9-2 2-9-9-9 9-2-2 9-9-9-9z" /></PixelIcon>
-              </button>
-            </span>
-          </>
+      <button
+        className="music-rail__play"
+        type="button"
+        onClick={togglePlay}
+        disabled={loading}
+        aria-label={playing ? "Pause mix" : loading ? "Loading mix" : "Play mix"}
+      >
+        {playing ? (
+          <PixelIcon name="stop"><path d="M7 7h18v18H7z" /></PixelIcon>
         ) : (
-          <span className="music-widget__window-actions music-widget__window-actions--closed" aria-hidden="true">
-            <span><PixelIcon name="minimize"><path d="M6 23h20v3H6z" /></PixelIcon></span>
-            <span><PixelIcon name="maximize"><path d="M5 5h22v22H5zm3 3v16h16V8z" /></PixelIcon></span>
-            <span><PixelIcon name="close"><path d="m7 5 9 9 9-9 2 2-9 9 9 9-2 2-9-9-9 9-2-2 9-9-9-9z" /></PixelIcon></span>
-          </span>
+          <PixelIcon name="play"><path d="m8 5 20 11L8 27z" /></PixelIcon>
         )}
-      </header>
+      </button>
 
-      {!open ? (
-        <div className="music-widget__closed-launch">
-          <h2>
-            <span className="music-widget__note" aria-hidden="true">♫</span>
-            Now playing
-          </h2>
-          <button
-            className="music-widget__toggle"
-            type="button"
-            onClick={toggleOpen}
-            aria-expanded={false}
-            aria-controls="music-widget-panel"
-            aria-label="Expand music player"
-          >
-            <span aria-hidden="true">+</span>
-          </button>
-        </div>
-      ) : null}
+      {/* Levels are written to --eq-level per bar by the effect above; the
+          loop only runs while the mix is playing. */}
+      <span className="music-rail__eq" ref={eqRef} aria-hidden="true">
+        {Array.from({ length: EQ_BARS }, (_, bar) => (
+          <i key={bar} />
+        ))}
+      </span>
 
-      {open ? (
-        <div className="music-widget__panel" id="music-widget-panel">
-          <div className="music-widget__screen">
-            <div className="music-widget__library">
-              <div className="music-widget__art">
-                <img
-                  src={YOUTUBE_MIX_COVER}
-                  alt={`${YOUTUBE_MIX_TITLE} by ${YOUTUBE_MIX_AUTHOR}`}
-                  loading="eager"
-                  width={480}
-                  height={360}
-                />
-              </div>
+      <p className="music-rail__now">
+        <strong>{activeCue.title}</strong>
+        <span aria-hidden="true">·</span>
+        <em>{activeCue.artist}</em>
+      </p>
 
-              <ol className="music-widget__list" aria-label="Mix sections">
-                {visibleCues.map((item, visibleIndex) => {
-                  const cueIndex = cueWindowStart + visibleIndex;
-                  const isActive = cueIndex === activeCueIndex;
-                  return (
-                    <li key={`${item.startSeconds}-${item.title}`}>
-                      <button
-                        type="button"
-                        className={isActive ? "is-active" : undefined}
-                        onClick={() => seekToCue(cueIndex)}
-                        disabled={!ready}
-                        aria-pressed={isActive}
-                        aria-label={`Jump to ${item.title} at ${formatTime(item.startSeconds)}`}
-                      >
-                        <span className="music-widget__index" aria-hidden="true">
-                          {isActive ? "▶" : "▫"}
-                        </span>
-                        <span className="music-widget__meta">
-                          <strong
-                            className={item.title.length > 16 ? "is-long" : undefined}
-                            title={item.title}
-                          >
-                            {item.title}
-                          </strong>
-                          <em>{item.artist}</em>
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ol>
-            </div>
+      <div
+        ref={progressRef}
+        className="music-rail__progress"
+        onClick={scrub}
+        role="slider"
+        aria-label="Mix progress"
+        aria-valuemin={0}
+        aria-valuemax={Math.floor(duration)}
+        aria-valuenow={Math.floor(currentTime)}
+        style={progressStyle}
+      >
+        <i />
+      </div>
 
-            <div className="music-widget__now">
-              <span className="music-widget__equalizer" aria-hidden="true">
-                <PixelIcon name="equalizer">
-                  <path d="M2 24h3v6H2zm0-8h3v5H2zm5 2h3v12H7zm0-9h3v6H7zm5 12h3v9h-3zm0-17h3v14h-3zm5 9h3v17h-3zm0-8h3v5h-3zm5 14h3v11h-3zm0-10h3v7h-3zm5 6h3v15h-3zm0-11h3v8h-3z" />
-                </PixelIcon>
-              </span>
-              <p className="music-widget__current">
-                <strong>{activeCue.title}</strong>
-                <span>{activeCue.artist}</span>
-              </p>
-              <time>{formatTime(currentTime)} / {duration ? formatTime(duration) : "--:--"}</time>
-            </div>
+      <time className="music-rail__time">
+        {formatTime(currentTime)} / {duration ? formatTime(duration) : "--:--"}
+      </time>
 
-            <div
-              ref={progressRef}
-              className="music-widget__progress"
-              onClick={scrub}
-              role="slider"
-              aria-label="Mix progress"
-              aria-valuemin={0}
-              aria-valuemax={Math.floor(duration)}
-              aria-valuenow={Math.floor(currentTime)}
-              style={progressStyle}
-            >
-              <i />
-            </div>
+      <a
+        className="music-rail__source"
+        href={YOUTUBE_MIX_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={`${YOUTUBE_MIX_TITLE} — ${YOUTUBE_MIX_AUTHOR}`}
+      >
+        {failed ? "Unavailable" : "Source"} <span aria-hidden="true">↗</span>
+      </a>
 
-            <div className="music-widget__controls" aria-label="Player controls">
-              <button type="button" onClick={() => seekBy(-30)} disabled={!ready} aria-label="Back 30 seconds">
-                <PixelIcon name="previous"><path d="M4 6h4v20H4zm22 0v20L9 16z" /></PixelIcon>
-              </button>
-
-              <button
-                className="music-widget__play"
-                type="button"
-                onClick={togglePlay}
-                disabled={!ready}
-                aria-label={playing ? "Pause" : "Play"}
-              >
-                {playing ? (
-                  <PixelIcon name="stop"><path d="M7 7h18v18H7z" /></PixelIcon>
-                ) : (
-                  <PixelIcon name="play"><path d="m8 5 20 11L8 27z" /></PixelIcon>
-                )}
-              </button>
-
-              <button type="button" onClick={() => seekBy(30)} disabled={!ready} aria-label="Forward 30 seconds">
-                <PixelIcon name="next"><path d="m6 6 17 10L6 26zm18 0h4v20h-4z" /></PixelIcon>
-              </button>
-
-              <button className="music-widget__shuffle" type="button" onClick={seekRandom} disabled={!ready} aria-label="Jump to a random point">
-                <PixelIcon name="shuffle"><path d="M3 8h5c5 0 7 6 10 10 2 3 4 6 7 6h4v-4l3 5-3 5v-3h-4c-5 0-7-6-10-10-2-3-4-6-7-6H3zm22 0h4V5l3 5-3 5v-4h-4c-2 0-4 2-5 4l-2-3c2-2 4-4 7-4zM3 24h5c2 0 4-2 6-4l2 3c-3 3-5 4-8 4H3z" /></PixelIcon>
-              </button>
-
-              <span className="music-widget__volume">
-                <PixelIcon name="speaker"><path d="M3 12h6l8-7v22l-8-7H3zm18-2c3 3 3 9 0 12l-2-2c2-2 2-6 0-8zm4-4c6 6 6 14 0 20l-2-2c5-5 5-11 0-16z" /></PixelIcon>
-                {Array.from({ length: 10 }, (_, part) => (
-                  <i key={part} className={part < Math.ceil(volume / 10) ? "is-lit" : undefined} />
-                ))}
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={volume}
-                  onChange={(event) => changeVolume(Number(event.target.value))}
-                  aria-label="Volume"
-                />
-              </span>
-            </div>
-
-            {failed ? (
-              <p className="music-widget__error">
-                Playback unavailable — <a href={YOUTUBE_MIX_URL} target="_blank" rel="noopener noreferrer">open on YouTube ↗</a>
-              </p>
-            ) : null}
-          </div>
-
-          <footer className="music-widget__foot">
-            <a href={YOUTUBE_MIX_URL} target="_blank" rel="noopener noreferrer">
-              Open in music <span aria-hidden="true">↗</span>
-            </a>
-            <span>{PLAYLIST_OWNER} mix</span>
-          </footer>
-        </div>
-      ) : null}
-
-      <div className="music-widget__youtube" ref={hostRef} aria-hidden="true" />
-    </section>
+      <div className="music-rail__youtube" ref={hostRef} aria-hidden="true" />
+    </div>
   );
 }

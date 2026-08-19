@@ -31,6 +31,8 @@ const REST = 0.5;
 const TURN_SPEED = 0.42;
 /** Keep decoded seeks close together so the browser never skips a large arc. */
 const MAX_FRAME_STEP = 2;
+/** Seeking compressed video faster than this adds decode work, not smoothness. */
+const SEEK_INTERVAL = 1000 / 30;
 
 export function HeroTurntable() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -45,8 +47,10 @@ export function HeroTurntable() {
     let target = REST;
     let current = REST;
     let frame = 0;
-    let previousTimestamp = performance.now();
+    let previousTimestamp = 0;
+    let previousSeekTimestamp = 0;
     let requestedFrame = Math.round(REST * (FRAMES - 1));
+    let visible = true;
 
     const onLoaded = () => {
       // Park on the resting frame so the first paint is not frame zero.
@@ -63,19 +67,29 @@ export function HeroTurntable() {
     }
 
     const onMove = (event: PointerEvent) => {
+      if (!visible) return;
       const x = Math.max(0, Math.min(1, event.clientX / window.innerWidth));
       // Keep the target exact. The animation loop supplies consistent
       // smoothing regardless of the mouse polling rate.
       target = REST - (x - 0.5) * SWEEP;
+      startAnimation();
     };
-    const onLeave = () => { target = REST; };
+    const onLeave = () => {
+      target = REST;
+      startAnimation();
+    };
 
     const tick = (timestamp: number) => {
+      frame = 0;
+      if (!visible) return;
+
       // Seek as soon as enough of the clip is buffered to show a frame.
       if (video.readyState >= 2 && video.duration) {
         // Move at a constant angular speed. Exponential interpolation used to
         // slow down near the target and made the last part of the turn stutter.
-        const delta = Math.min((timestamp - previousTimestamp) / 1000, 0.05);
+        const delta = previousTimestamp
+          ? Math.min((timestamp - previousTimestamp) / 1000, 0.05)
+          : 0;
         const distance = target - current;
         const step = TURN_SPEED * delta;
         current += Math.sign(distance) * Math.min(Math.abs(distance), step);
@@ -88,7 +102,11 @@ export function HeroTurntable() {
 
         // Blender's orbit runs opposite to screen coordinates: later frames
         // face left and earlier frames face right.
-        if (!video.seeking && desiredFrame !== requestedFrame) {
+        if (
+          timestamp - previousSeekTimestamp >= SEEK_INTERVAL &&
+          !video.seeking &&
+          desiredFrame !== requestedFrame
+        ) {
           const frameDelta = desiredFrame - requestedFrame;
           requestedFrame += Math.sign(frameDelta) * Math.min(
             Math.abs(frameDelta),
@@ -98,18 +116,47 @@ export function HeroTurntable() {
             requestedFrame / FPS,
             video.duration - 0.001,
           );
+          previousSeekTimestamp = timestamp;
         }
+
+        const settled =
+          Math.abs(target - current) < 0.0005 &&
+          desiredFrame === requestedFrame &&
+          !video.seeking;
+        previousTimestamp = timestamp;
+        if (!settled) frame = window.requestAnimationFrame(tick);
+        return;
       }
       previousTimestamp = timestamp;
       frame = window.requestAnimationFrame(tick);
     };
 
+    function startAnimation() {
+      if (frame || !visible) return;
+      previousTimestamp = performance.now();
+      frame = window.requestAnimationFrame(tick);
+    }
+
+    const hero = video.closest(".system-hero");
+    const scrollRoot = document.querySelector<HTMLElement>("[data-scroll-container]");
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting;
+        if (!visible && frame) {
+          window.cancelAnimationFrame(frame);
+          frame = 0;
+        }
+      },
+      { root: scrollRoot, threshold: 0.01 },
+    );
+    if (hero) visibilityObserver.observe(hero);
+
     window.addEventListener("pointermove", onMove, { passive: true });
     document.addEventListener("pointerleave", onLeave);
-    frame = window.requestAnimationFrame(tick);
 
     return () => {
       window.cancelAnimationFrame(frame);
+      visibilityObserver.disconnect();
       window.removeEventListener("pointermove", onMove);
       document.removeEventListener("pointerleave", onLeave);
       video.removeEventListener("loadeddata", onLoaded);
