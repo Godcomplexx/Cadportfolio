@@ -15,8 +15,8 @@ export const metadata: Metadata = {
       : "https://daria-cad-archive.daydd385.chatgpt.site",
   ),
   title: {
-    default: "Daria Melnikova — 3D, CAD & Product Prototyping",
-    template: "%s — Daria Melnikova",
+    default: "CADtfolio",
+    template: "%s — CADtfolio",
   },
   description:
     "Compact physical products, CAD models, visual stories and working prototypes by Daria Melnikova.",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     "photogrammetry",
   ],
   openGraph: {
-    title: "Daria Melnikova — 3D, CAD & Product Prototyping",
+    title: "CADtfolio — Daria Melnikova",
     description:
       "Compact devices, physical interfaces and visual product stories.",
     type: "website",
@@ -43,7 +43,14 @@ export const metadata: Metadata = {
     ],
   },
   icons: {
-    icon: `${publicBasePath}/favicon.svg`,
+    /* .ico first for the widest browser support, then the PNG sizes. The 32px
+       entry is what a desktop tab actually renders. */
+    icon: [
+      { url: `${publicBasePath}/favicon.ico`, sizes: "any" },
+      { url: `${publicBasePath}/icon-32.png`, type: "image/png", sizes: "32x32" },
+      { url: `${publicBasePath}/icon-16.png`, type: "image/png", sizes: "16x16" },
+    ],
+    apple: `${publicBasePath}/icon-180.png`,
   },
 };
 

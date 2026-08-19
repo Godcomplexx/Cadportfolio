@@ -85,25 +85,6 @@ export function MotionSystem() {
       if (scrollRoot) scrollTrigger.defaults({ scroller: scrollRoot });
 
       if (motionEnabled && !performanceLite) {
-        const heroGhost = document.querySelector(".system-hero__ghost");
-        if (heroGhost) {
-          gsap.fromTo(
-            heroGhost,
-            { xPercent: -1.8, opacity: 0.6 },
-            {
-              xPercent: 2.6,
-              opacity: 0.18,
-              ease: "none",
-              scrollTrigger: {
-                trigger: ".system-hero",
-                start: "top top",
-                end: "bottom top",
-                scrub: 0.2,
-              },
-            },
-          );
-        }
-
         // The hero has pointer interaction; the work index and cases stay
         // precise. Only the atmospheric bridge keeps scroll-linked depth.
         const fogMotion = [

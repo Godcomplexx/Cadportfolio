@@ -1053,30 +1053,10 @@ canvas {
     );
 }
 
-/* The blurred cloud layers are what actually produced the visible seams: they
-   are bright, and overflow: hidden cut them off dead straight at both edges.
-   Masking the whole group to transparent at top and bottom means nothing ever
-   meets a border with hard contrast — the layers fade out before they reach it. */
 .fog-bridge__wash,
 .fog-bridge__cloud {
   position: absolute;
   inset: -20%;
-  /* Stops are set on this stretched box (inset: -20%), so the fully-opaque band
-     sits inside the bridge's real top and bottom edges. */
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent 14%,
-    black 34%,
-    black 66%,
-    transparent 86%
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    transparent 14%,
-    black 34%,
-    black 66%,
-    transparent 86%
-  );
 }
 
 .fog-bridge__wash {
@@ -1084,8 +1064,30 @@ canvas {
   background: radial-gradient(ellipse at 50% 35%, rgba(56, 114, 255, 0.35), transparent 58%);
 }
 
+/* Feathering happens on the inner span, not on this layer. GSAP scrubs this
+   element's scale and opacity on scroll, and a mask here forced the browser to
+   re-blur and re-mask a moving element every frame — that was the scroll
+   stutter. The span is static, so its mask is composited once. */
 .fog-bridge__cloud {
   filter: blur(24px);
+}
+
+.fog-bridge__cloud span,
+.fog-bridge__wash {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 4%,
+    black 26%,
+    black 74%,
+    transparent 96%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 4%,
+    black 26%,
+    black 74%,
+    transparent 96%
+  );
 }
 
 .fog-bridge__cloud span {
@@ -1101,6 +1103,13 @@ canvas {
 .fog-bridge__cloud--back { z-index: 1; opacity: 0.45; }
 .fog-bridge__cloud--middle { z-index: 2; opacity: 0.58; transform: scaleX(-1); }
 .fog-bridge__cloud--front { z-index: 5; opacity: 0.65; filter: blur(32px); }
+
+/* Only the two layers GSAP actually scrubs get promoted; hinting all of them
+   would cost memory for layers that never move. */
+[data-fog-layer="middle"],
+[data-fog-layer="front"] {
+  will-change: transform, opacity;
+}
 
 /* WORK INDEX */
 .work-section {
