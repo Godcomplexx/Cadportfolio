@@ -529,12 +529,7 @@ export function PortfolioExperience() {
         <div className="system-hero__cursor-mark depth-5" data-depth="5" aria-hidden="true" />
       </section>
 
-      <div className="fog-bridge" aria-hidden="true">
-        <div className="fog-bridge__wash depth-0" data-depth="0" data-fog-layer="wash" />
-        <div className="fog-bridge__cloud fog-bridge__cloud--back depth-1" data-depth="1" data-fog-layer="back"><span /><span /></div>
-        <div className="fog-bridge__cloud fog-bridge__cloud--middle depth-2" data-depth="2" data-fog-layer="middle"><span /><span /></div>
-        <div className="fog-bridge__cloud fog-bridge__cloud--front depth-5" data-depth="5" data-fog-layer="front"><span /><span /></div>
-      </div>
+      <div className="fog-bridge" aria-hidden="true" />
 
       <WorkIndex projects={projectIndex} />
 

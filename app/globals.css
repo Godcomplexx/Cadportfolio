@@ -663,12 +663,11 @@ canvas {
   inset: 0;
   z-index: 0;
   background:
-    /* Settles the bottom of the hero onto #07113a, the colour the bridge starts
-       with. The diagonal below ends bright blue on the left, so without this the
-       hero handed a hard colour step to the section under it. */
-    linear-gradient(to bottom, transparent 62%, rgba(7, 17, 58, 0.72) 88%, #07113a 100%),
+    /* Settle the hero onto the same solid tone used by the bridge and work
+       index, so the section boundary never produces a colour step. */
+    linear-gradient(to bottom, transparent 62%, rgba(7, 20, 74, 0.72) 88%, var(--night) 100%),
     radial-gradient(circle at 50% 44%, rgba(53, 106, 255, 0.9) 0, rgba(16, 52, 183, 0.38) 31%, transparent 59%),
-    linear-gradient(135deg, #061244 0%, #123dcc 54%, #07113a 100%);
+    linear-gradient(135deg, #061244 0%, #123dcc 54%, var(--night) 100%);
 }
 
 .system-hero__field::before {
@@ -1023,92 +1022,14 @@ canvas {
 .system-hero__cursor-mark::before { width: 22px; height: 1px; }
 .system-hero__cursor-mark::after { width: 1px; height: 22px; }
 
-/* TRANSITION */
-/* The seam has to start from the hero's *actual* bottom edge, which is not one
-   flat colour: the hero field is a 135deg gradient, so its lower edge runs from
-   bright blue on the left to near-black on the right. A flat #07113a start met
-   that edge with a visible brightness step across the left half. The first
-   layer reproduces that diagonal and fades it out, so the two edges match. */
+/* SOLID BRIDGE */
+/* The breathing room between hero and work index intentionally holds one tone.
+   Both adjacent section edges resolve to --night, so no transition band or
+   atmospheric seam is visible. */
 .fog-bridge {
   z-index: 2;
   height: clamp(18rem, 36vh, 32rem);
-  margin-top: -1px;
-  background:
-    linear-gradient(
-      135deg,
-      rgba(18, 61, 204, 0.55) 0%,
-      rgba(11, 32, 116, 0.3) 38%,
-      transparent 68%
-    ),
-    /* Ends on --night (#07144a): the element directly below is .work-index,
-       not .work-intro. Bottoming out at near-black met that lighter section
-       with a hard step. */
-    linear-gradient(
-      to bottom,
-      #07113a 0%,
-      #061031 30%,
-      #050d28 52%,
-      #061134 78%,
-      #07144a 100%
-    );
-}
-
-.fog-bridge__wash,
-.fog-bridge__cloud {
-  position: absolute;
-  inset: -20%;
-}
-
-.fog-bridge__wash {
-  z-index: 0;
-  background: radial-gradient(ellipse at 50% 35%, rgba(56, 114, 255, 0.35), transparent 58%);
-}
-
-/* Feathering happens on the inner span, not on this layer. GSAP scrubs this
-   element's scale and opacity on scroll, and a mask here forced the browser to
-   re-blur and re-mask a moving element every frame — that was the scroll
-   stutter. The span is static, so its mask is composited once. */
-.fog-bridge__cloud {
-  filter: blur(24px);
-}
-
-.fog-bridge__cloud span,
-.fog-bridge__wash {
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent 4%,
-    black 26%,
-    black 74%,
-    transparent 96%
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    transparent 4%,
-    black 26%,
-    black 74%,
-    transparent 96%
-  );
-}
-
-.fog-bridge__cloud span {
-  position: absolute;
-  width: 57%;
-  height: 75%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(131, 170, 255, 0.52), rgba(46, 76, 178, 0.1) 58%, transparent 72%);
-}
-
-.fog-bridge__cloud span:first-child { top: 5%; left: -5%; }
-.fog-bridge__cloud span:last-child { right: -5%; bottom: -10%; }
-.fog-bridge__cloud--back { z-index: 1; opacity: 0.45; }
-.fog-bridge__cloud--middle { z-index: 2; opacity: 0.58; transform: scaleX(-1); }
-.fog-bridge__cloud--front { z-index: 5; opacity: 0.65; filter: blur(32px); }
-
-/* Only the two layers GSAP actually scrubs get promoted; hinting all of them
-   would cost memory for layers that never move. */
-[data-fog-layer="middle"],
-[data-fog-layer="front"] {
-  will-change: transform, opacity;
+  background: var(--night);
 }
 
 /* WORK INDEX */
@@ -2596,7 +2517,6 @@ canvas {
   display: none;
 }
 
-.perf-lite .fog-bridge__cloud,
 .perf-lite .project-tile__halo,
 .perf-lite .system-hero__glow span {
   filter: blur(26px);

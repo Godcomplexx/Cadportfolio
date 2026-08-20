@@ -66,14 +66,6 @@ export default function RootLayout({
             html { scroll-behavior: auto !important; }
           }
         `}</style>
-        <script
-          defer
-          src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"
-        />
-        <script
-          defer
-          src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"
-        />
       </head>
       <body>
         <SiteLoader />

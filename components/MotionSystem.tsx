@@ -2,32 +2,6 @@
 
 import { useEffect } from "react";
 
-type GsapLike = {
-  registerPlugin: (...plugins: unknown[]) => void;
-  fromTo: (
-    target: Element,
-    from: Record<string, unknown>,
-    to: Record<string, unknown>,
-  ) => unknown;
-};
-
-type ScrollTriggerInstance = {
-  kill: () => void;
-};
-
-type ScrollTriggerLike = {
-  defaults: (options: Record<string, unknown>) => void;
-  refresh: () => void;
-  getAll?: () => ScrollTriggerInstance[];
-};
-
-declare global {
-  interface Window {
-    gsap?: GsapLike;
-    ScrollTrigger?: ScrollTriggerLike;
-  }
-}
-
 export function MotionSystem() {
   useEffect(() => {
     const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -68,64 +42,9 @@ export function MotionSystem() {
       });
     });
 
-    let initTimer = 0;
-    let attempts = 0;
-
-    const initGsap = () => {
-      attempts += 1;
-      const gsap = window.gsap;
-      const scrollTrigger = window.ScrollTrigger;
-
-      if (!gsap || !scrollTrigger) {
-        if (attempts < 24) initTimer = window.setTimeout(initGsap, 120);
-        return;
-      }
-
-      gsap.registerPlugin(scrollTrigger);
-      if (scrollRoot) scrollTrigger.defaults({ scroller: scrollRoot });
-
-      if (motionEnabled && !performanceLite) {
-        // The hero has pointer interaction; the work index and cases stay
-        // precise. Only the atmospheric bridge keeps scroll-linked depth.
-        const fogMotion = [
-          {
-            selector: '[data-fog-layer="middle"]',
-            from: { xPercent: 2, yPercent: 6, scale: 0.98, opacity: 0.32 },
-            to: { xPercent: -2, yPercent: -7, scale: 1.06, opacity: 0.58 },
-          },
-          {
-            selector: '[data-fog-layer="front"]',
-            from: { yPercent: 10, scale: 1.01, opacity: 0.72 },
-            to: { yPercent: -13, scale: 1.1, opacity: 0.12 },
-          },
-        ] as const;
-
-        fogMotion.forEach(({ selector, from, to }) => {
-          const layer = document.querySelector(selector);
-          if (!layer) return;
-          gsap.fromTo(layer, from, {
-            ...to,
-            ease: "none",
-            scrollTrigger: {
-              trigger: ".fog-bridge",
-              start: "top 92%",
-              end: "bottom top",
-              scrub: 0.2,
-            },
-          });
-        });
-      }
-
-      window.requestAnimationFrame(() => scrollTrigger.refresh());
-    };
-
-    initGsap();
-
     return () => {
       window.cancelAnimationFrame(revealFrame);
       revealObserver.disconnect();
-      window.clearTimeout(initTimer);
-      window.ScrollTrigger?.getAll?.().forEach((trigger) => trigger.kill());
     };
   }, []);
 
