@@ -156,6 +156,43 @@ function ProjectSchematic({ project }: { project: Project }) {
   );
 }
 
+function ProjectProcessVideo({ project }: { project: Project }) {
+  if (!project.processVideo) return null;
+
+  const descriptionId = `project-video-description-${project.key}`;
+
+  return (
+    <figure
+      className="project-video depth-3"
+      data-depth="3"
+      data-fixed-depth
+      data-reveal="block"
+    >
+      <div className="project-video__rail" aria-hidden="true">
+        <span>{project.processVideo.label}</span>
+        <span>{project.processVideo.meta}</span>
+      </div>
+      <div className="project-video__frame">
+        <video
+          controls
+          playsInline
+          preload="metadata"
+          poster={project.processVideo.poster}
+          aria-label={`${project.title} process video`}
+          aria-describedby={descriptionId}
+        >
+          <source src={project.processVideo.src} type="video/mp4" />
+          Your browser does not support embedded video.
+        </video>
+        <span className="project-video__scan" aria-hidden="true" />
+        <span className="project-video__corner project-video__corner--a" aria-hidden="true" />
+        <span className="project-video__corner project-video__corner--b" aria-hidden="true" />
+      </div>
+      <figcaption id={descriptionId}>{project.processVideo.description}</figcaption>
+    </figure>
+  );
+}
+
 function ProjectTile({ project, index }: { project: Project; index: number }) {
   const style = {
     "--project-index": index,
@@ -188,7 +225,7 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
 
       <div className="project-tile__copy depth-4" data-depth="4">
         <p className="project-tile__meta" data-reveal="line">
-          {project.number} / {String(featuredProjects.length).padStart(2, "0")} &nbsp; {project.year} &nbsp; {project.status}
+          {String(index + 1).padStart(2, "0")} / {String(featuredProjects.length).padStart(2, "0")} &nbsp; {project.year} &nbsp; {project.status}
         </p>
         <h3 id={`project-title-${project.key}`} data-reveal="text">
           {project.key === "smartmotion" ? <><span>Smart</span><br /><span>Motion</span></> : project.shortTitle}
@@ -251,6 +288,7 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
             </ul>
           </div>
         </div>
+        <ProjectProcessVideo project={project} />
         <footer className="project-tile__footer">
           {/* Full stack, not the first three: these are the exact keywords a
               technical reviewer scans for. */}
@@ -270,7 +308,11 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
       </div>
 
       <span className="project-tile__label depth-5" data-depth="5" aria-hidden="true">
-        {index === 0 ? "FEATURED SYSTEM" : "WORKING PROTOTYPE"}
+        {index === 0
+          ? "FEATURED SYSTEM"
+          : project.status === "Concept"
+            ? "CONCEPT STUDY"
+            : "WORKING PROTOTYPE"}
       </span>
     </article>
   );
@@ -506,7 +548,7 @@ export function PortfolioExperience() {
           <div className="work-intro__copy depth-4" data-depth="4">
             <p className="section-kicker" data-reveal="line">Selected systems / 2025—2026</p>
             <h2 id="work-title" data-reveal="text">SELECTED<br />WORK</h2>
-            <p data-reveal="line">Two working systems — shown through real builds, behavior and next proof.</p>
+            <p data-reveal="line">Two working systems and one visualization concept — shown through builds, behavior and process.</p>
           </div>
           <p className="work-intro__note depth-5" data-depth="5" aria-hidden="true">FORM / SIGNAL / PROOF</p>
         </header>

@@ -44,6 +44,13 @@ export type Project = {
   visualRatio: string;
   actualImage?: string;
   actualImageAlt?: string;
+  processVideo?: {
+    src: string;
+    poster: string;
+    label: string;
+    meta: string;
+    description: string;
+  };
   source?: { label: string; href: string };
   tone: "coral" | "blue" | "sage" | "violet";
 };
@@ -285,24 +292,35 @@ export const projects: Project[] = [
       { label: "Product status", value: "Concept" },
       { label: "Emphasis", value: "Form, light, materials, story" },
       { label: "Not claimed", value: "Medical or mechanical validation" },
-      { label: "Media pending", value: "Final animation export" },
+      { label: "Sequence", value: "26 s vertical product animation" },
     ],
     result:
       "The work defines a concise visual language for a technically informed wearable concept without presenting it as a tested device.",
     nextStep:
-      "Complete the final render set and export a silent, captioned product sequence.",
+      "Refine the lighting and pacing, then export a presentation-ready version with English captions.",
     evidence: {
-      verified: ["Form study", "Material direction", "Motion structure"],
-      next: ["Final renders", "Exploded animation"],
+      verified: ["Form study", "Material direction", "Exploded sequence"],
+      next: ["Final render polish", "Captioned export"],
     },
     visualLabel: "VISUALIZATION CONCEPT / MOTION PLAN",
     visualRatio: "9:16 + 16:9 / FINAL MEDIA",
+    processVideo: {
+      src: publicPath("/media/eeg-wearable/eeg-device2.mp4"),
+      poster: publicPath("/media/eeg-wearable/eeg-device2-poster.webp"),
+      label: "PROCESS CLIP / EEG EARPIECE",
+      meta: "00:26 / 9:16",
+      description:
+        "Assembled form, exploded stack and electronics shown in one vertical concept sequence.",
+    },
     tone: "violet",
   },
 ];
 
 export const featuredProjects = projects.filter(
-  (project) => project.key === "copet-pilot" || project.key === "smartmotion",
+  (project) =>
+    project.key === "copet-pilot" ||
+    project.key === "smartmotion" ||
+    project.key === "eeg-wearable",
 );
 
 export const projectIndex: ProjectIndexEntry[] = [
@@ -314,7 +332,9 @@ export const projectIndex: ProjectIndexEntry[] = [
     year: project.year,
     status: project.status,
     href:
-      project.key === "copet-pilot" || project.key === "smartmotion"
+      project.key === "copet-pilot" ||
+      project.key === "smartmotion" ||
+      project.key === "eeg-wearable"
         ? `#project-${project.key}`
         : undefined,
   })),
