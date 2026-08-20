@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { HeroTurntable } from "@/components/HeroTurntable";
 import { MusicPlayer } from "@/components/MusicPlayer";
 import { Scramble } from "@/components/Scramble";
@@ -323,7 +323,7 @@ export function PortfolioExperience() {
   const [isPastHero, setIsPastHero] = useState(false);
   const [viewportLabel, setViewportLabel] = useState("0000 X 0000");
   const [clock, setClock] = useState("--:--");
-  const [pointer, setPointer] = useState("0000 X 0000 Y");
+  const pointerRef = useRef<HTMLSpanElement>(null);
 
   // Cursor read-out in the HUD, updated straight from pointer moves.
   const [hasPointer, setHasPointer] = useState(true);
@@ -333,15 +333,23 @@ export function PortfolioExperience() {
       const flag = window.setTimeout(() => setHasPointer(false), 0);
       return () => window.clearTimeout(flag);
     }
+    let frame = 0;
+    let nextLabel = "0000 X 0000 Y";
+    const writePointer = () => {
+      frame = 0;
+      if (pointerRef.current) pointerRef.current.textContent = nextLabel;
+    };
     const onMove = (event: PointerEvent) => {
-      setPointer(
-        `${String(Math.round(event.clientX)).padStart(4, "0")} X ${String(
-          Math.round(event.clientY),
-        ).padStart(4, "0")} Y`,
-      );
+      nextLabel = `${String(Math.round(event.clientX)).padStart(4, "0")} X ${String(
+        Math.round(event.clientY),
+      ).padStart(4, "0")} Y`;
+      if (!frame) frame = window.requestAnimationFrame(writePointer);
     };
     window.addEventListener("pointermove", onMove, { passive: true });
-    return () => window.removeEventListener("pointermove", onMove);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("pointermove", onMove);
+    };
   }, []);
 
   // Live Moscow time, independent of the visitor's own timezone.
@@ -393,14 +401,19 @@ export function PortfolioExperience() {
     const scrollRoot = document.querySelector<HTMLElement>("[data-scroll-container]");
     if (!scrollRoot) return;
 
+    let pastHero = false;
     const updateInterfaceMode = () => {
-      setIsPastHero(scrollRoot.scrollTop > window.innerHeight * 0.72);
+      const next = scrollRoot.scrollTop > window.innerHeight * 0.72;
+      if (next === pastHero) return;
+      pastHero = next;
+      setIsPastHero(next);
     };
 
-    updateInterfaceMode();
+    const initialFrame = window.requestAnimationFrame(updateInterfaceMode);
     scrollRoot.addEventListener("scroll", updateInterfaceMode, { passive: true });
     window.addEventListener("resize", updateInterfaceMode);
     return () => {
+      window.cancelAnimationFrame(initialFrame);
       scrollRoot.removeEventListener("scroll", updateInterfaceMode);
       window.removeEventListener("resize", updateInterfaceMode);
     };
@@ -444,7 +457,7 @@ export function PortfolioExperience() {
 
       <aside className="site-hud" aria-hidden="true">
         <span>GMT+3 RU {clock}</span>
-        <span>{hasPointer ? pointer : viewportLabel}</span>
+        <span ref={pointerRef}>{hasPointer ? "0000 X 0000 Y" : viewportLabel}</span>
         {hudMedia ? (
           <video
             className="site-hud__media"

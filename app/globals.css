@@ -49,7 +49,6 @@
 html {
   background: var(--night);
   color-scheme: dark;
-  scroll-behavior: smooth;
 }
 
 html,
@@ -2212,7 +2211,6 @@ canvas {
 }
 
 @supports (content-visibility: auto) {
-  .project-tile,
   .about-section,
   .contact-section {
     content-visibility: auto;

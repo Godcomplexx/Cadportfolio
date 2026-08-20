@@ -54,8 +54,6 @@ declare global {
 }
 
 let apiPromise: Promise<YouTubeNamespace> | null = null;
-/* Set to "off" once the visitor pauses, so the next visit stays silent. */
-const AUTOPLAY_KEY = "music-autoplay";
 
 function loadYouTubeApi(): Promise<YouTubeNamespace> {
   if (apiPromise) return apiPromise;
@@ -163,35 +161,9 @@ export function MusicPlayer() {
   const pendingPlayRef = useRef(false);
   const eqRef = useRef<HTMLSpanElement>(null);
 
-  // Browsers refuse to start audio before the visitor has interacted with the
-  // page, so autoplay cannot fire on load — the first click, key or scroll is
-  // the earliest a play() call will be honoured. A visitor who paused last
-  // visit is left alone.
   useEffect(() => {
-    if (window.localStorage.getItem(AUTOPLAY_KEY) === "off") return;
-
-    const events = ["pointerdown", "keydown", "wheel", "touchstart"] as const;
-
-    const start = () => {
-      stop();
-      pendingPlayRef.current = true;
-      setPlayerRequested(true);
-    };
-
-    function stop() {
-      events.forEach((name) => window.removeEventListener(name, start));
-    }
-
-    events.forEach((name) =>
-      window.addEventListener(name, start, { once: true, passive: true }),
-    );
-
-    return stop;
-  }, []);
-
-  useEffect(() => {
-    // Keep the landing page free of YouTube scripts and iframes until the
-    // visitor explicitly asks for audio.
+    // Keep navigation and scrolling free of third-party work. YouTube is
+    // requested only by an explicit press on the player's Play button.
     if (!playerRequested) return;
 
     const host = hostRef.current;
@@ -370,10 +342,6 @@ export function MusicPlayer() {
   }, [playing]);
 
   const togglePlay = useCallback(() => {
-    // Pressing the button is an explicit choice and overrides the remembered
-    // one in both directions.
-    window.localStorage.setItem(AUTOPLAY_KEY, playing ? "off" : "on");
-
     const player = playerRef.current;
     if (!player) {
       pendingPlayRef.current = true;
