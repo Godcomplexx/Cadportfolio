@@ -1031,12 +1031,11 @@ canvas {
 .system-hero__cursor-mark::after { width: 1px; height: 22px; }
 
 /* SOLID BRIDGE */
-/* The breathing room between hero and work index intentionally holds one tone.
-   Both adjacent section edges resolve to --night, so no transition band or
-   atmospheric seam is visible. */
+/* Hero and index already meet on the same solid tone, so this bridge only
+   preserves the document structure and must not add an empty viewport gap. */
 .fog-bridge {
   z-index: 2;
-  height: clamp(18rem, 36vh, 32rem);
+  height: 0;
   background: var(--night);
 }
 
@@ -2694,7 +2693,7 @@ canvas {
   }
 
   .fog-bridge {
-    height: 13rem;
+    height: 0;
   }
 
   .work-intro {
@@ -3040,8 +3039,9 @@ canvas {
 .work-index {
   position: relative;
   z-index: 3;
-  /* Clears the fixed navigation rail. */
-  padding-top: clamp(7rem, 11vw, 12rem);
+  /* Keeps the anchored heading below the fixed navigation rail without
+     recreating the large empty bridge that used to precede this section. */
+  padding-top: clamp(4.5rem, 5vw, 6rem);
   padding-bottom: clamp(8rem, 13vw, 14rem);
   background: transparent;
 }
