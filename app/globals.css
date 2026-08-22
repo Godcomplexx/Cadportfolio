@@ -62,7 +62,7 @@ body {
 body {
   color: var(--paper);
   background: var(--night);
-  font-family: var(--display);
+  font-family: var(--mono);
   font-size: 16px;
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
@@ -1875,8 +1875,8 @@ canvas {
 
 .visual-study h3 {
   margin: 1.6rem 0 1rem;
-  font: 400 clamp(1.8rem, 3.2vw, 4rem)/0.95 var(--display);
-  letter-spacing: 0.05em;
+  font: 400 clamp(1.2rem, 1.8vw, 2rem)/1.15 var(--mono);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -1955,7 +1955,7 @@ canvas {
 
 .visual-study h3 {
   margin: 2.5rem 0 0.8rem;
-  font-size: clamp(1.35rem, 2.25vw, 2.8rem);
+  font-size: clamp(1.2rem, 1.8vw, 2rem);
 }
 
 .visual-study small {
@@ -2018,7 +2018,7 @@ canvas {
   z-index: 2;
   margin: 0;
   color: rgba(255, 255, 255, 0.055);
-  font: 400 clamp(6rem, 18vw, 21rem)/0.9 var(--display);
+  font: 400 clamp(6rem, 18vw, 21rem)/0.9 var(--mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -2061,7 +2061,7 @@ canvas {
 
 .about-metrics dt {
   color: var(--lime);
-  font: 400 clamp(3.8rem, 7vw, 8.5rem)/0.8 var(--display);
+  font: 400 clamp(3.8rem, 7vw, 8.5rem)/0.8 var(--mono);
   letter-spacing: 0.04em;
 }
 
@@ -2168,7 +2168,7 @@ canvas {
 .process-strip li + li { padding-left: 1.3rem; }
 .process-strip span,
 .process-strip small { color: var(--muted); font: 400 0.56rem/1.4 var(--mono); }
-.process-strip strong { font: 400 clamp(1.3rem, 2vw, 2.4rem)/1 var(--display); letter-spacing: 0.08em; text-transform: uppercase; }
+.process-strip strong { font: 400 clamp(1.05rem, 1.35vw, 1.55rem)/1.2 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; }
 .process-strip small { grid-column: 2; }
 
 /* CONTACT */
@@ -2189,7 +2189,7 @@ canvas {
   bottom: -4vw;
   z-index: 2;
   color: rgba(255, 255, 255, 0.035);
-  font: 400 37vw/0.84 var(--display);
+  font: 400 37vw/0.84 var(--mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -2691,7 +2691,7 @@ canvas {
 
 .t-lede {
   margin: 0;
-  font: 400 clamp(1.05rem, 2.1svw, 2rem)/1.24 var(--display);
+  font: 400 clamp(1.05rem, 2.1svw, 2rem)/1.24 var(--mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -2734,7 +2734,7 @@ canvas {
   bottom: 0.7rem;
   color: rgba(235, 242, 255, 0.28);
   content: attr(data-index);
-  font: 400 clamp(2.5rem, 4vw, 4.5rem)/1 var(--display);
+  font: 400 clamp(2.5rem, 4vw, 4.5rem)/1 var(--mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
