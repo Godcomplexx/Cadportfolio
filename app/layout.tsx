@@ -16,7 +16,7 @@ export const metadata: Metadata = {
       : "https://daria-cad-archive.daydd385.chatgpt.site",
   ),
   title: {
-    default: "Daria Melnikova — CAD & Product Visualization",
+    default: "CADtfolio",
     template: "%s — Daria Melnikova",
   },
   description:
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     "product visualization",
   ],
   openGraph: {
-    title: "Daria Melnikova — CAD & Product Visualization",
+    title: "CADtfolio — Daria Melnikova",
     description:
       "SolidWorks parts, assemblies, technical drawings and product visualization.",
     type: "website",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
         url: `${publicBasePath}/og-image.svg`,
         width: 1200,
         height: 630,
-        alt: "Daria Melnikova — 3D, CAD & Product Prototyping",
+        alt: "CADtfolio — Daria Melnikova CAD portfolio",
       },
     ],
   },
