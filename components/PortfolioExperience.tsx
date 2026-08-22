@@ -647,22 +647,6 @@ export function PortfolioExperience() {
       <VisualLab />
 
       <div className="section-transition" aria-hidden="true" />
-      <section className="scene signal-section" aria-labelledby="signal-title">
-        <div className="signal-section__void depth-0" data-depth="0" aria-hidden="true" />
-        <div className="signal-section__glow depth-1" data-depth="1" aria-hidden="true" />
-        <div className="signal-section__rays depth-2" data-depth="2" data-signal-rays aria-hidden="true" />
-        <h2 className="signal-section__title depth-4" data-depth="4" id="signal-title" data-reveal="text">
-          BUILD<br />WITH<br />PURPOSE
-        </h2>
-        <div className="signal-section__principles depth-4" data-depth="4">
-          <p>Clarity first.<br />Delight second.</p>
-          <p>Independent by<br />design &amp; engineering.</p>
-          <p>Small loops.<br />Long arcs.</p>
-        </div>
-        <div className="signal-section__reticle depth-5" data-depth="5" aria-hidden="true"><span /><i /></div>
-      </section>
-
-      <div className="section-transition" aria-hidden="true" />
       <section className="scene about-section" id="about" aria-labelledby="about-title">
         <div className="about-section__field depth-0" data-depth="0" aria-hidden="true" />
         <div className="about-section__halo depth-1" data-depth="1" aria-hidden="true" />

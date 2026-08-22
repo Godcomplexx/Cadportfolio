@@ -1043,8 +1043,7 @@ canvas {
 
 .work-intro h2,
 .about-section h2,
-.contact-section h2,
-.signal-section h2 {
+.contact-section h2 {
   margin: 0;
   font-family: var(--display);
   /* Heavy and tightly tracked — display type, not technical labelling. */
@@ -1968,110 +1967,6 @@ canvas {
   }
 }
 
-/* STARBURST MANIFESTO */
-.signal-section {
-  min-height: 126svh;
-  background: transparent;
-}
-
-.signal-section__void {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 50% 49%, rgba(20, 26, 63, 0) 0 8%, rgba(0, 0, 0, 0.72) 52%, #000 78%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
-}
-
-.signal-section__glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 28vw;
-  height: 28vw;
-  border-radius: 50%;
-  background: rgba(104, 174, 255, 0.2);
-  filter: blur(42px);
-  transform: translate(-50%, -50%);
-}
-
-.signal-section__rays {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 120vmax;
-  height: 120vmax;
-  opacity: 0.58;
-  background: repeating-conic-gradient(from -2deg, rgba(143, 173, 255, 0.44) 0deg 0.4deg, transparent 0.5deg 3.1deg);
-  filter: blur(0.35px);
-  mask-image: radial-gradient(circle, transparent 0 6%, black 8% 40%, transparent 72%);
-  transform: translate(-50%, -50%);
-  transform-origin: center;
-}
-
-.signal-section__title {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  z-index: 4;
-  width: 88vw;
-  font-size: clamp(4.5rem, 15vw, 17rem);
-  line-height: 0.69;
-  text-align: center;
-  text-shadow: 0 0 42px rgba(86, 142, 255, 0.34);
-  transform: translate(-50%, -50%);
-}
-
-.signal-section__title::first-line {
-  color: var(--cyan);
-}
-
-.signal-section__principles {
-  position: absolute;
-  right: var(--pad);
-  bottom: 9%;
-  left: var(--pad);
-  z-index: 4;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-}
-
-.signal-section__principles p {
-  margin: 0;
-  color: rgba(243, 247, 255, 0.66);
-  font: 400 clamp(0.58rem, 0.69vw, 0.72rem)/1.5 var(--mono);
-  text-transform: uppercase;
-}
-
-.signal-section__principles p:nth-child(2) { text-align: center; }
-.signal-section__principles p:nth-child(3) { text-align: right; }
-
-.signal-section__reticle {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  z-index: 5;
-  width: 13rem;
-  height: 13rem;
-  border: 1px solid rgba(209, 224, 255, 0.26);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.signal-section__reticle::before,
-.signal-section__reticle::after {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  content: "";
-  background: rgba(209, 224, 255, 0.34);
-  transform: translate(-50%, -50%);
-}
-
-.signal-section__reticle::before { width: 18rem; height: 1px; }
-.signal-section__reticle::after { width: 1px; height: 18rem; }
-
 /* ABOUT */
 .about-section {
   min-height: 150svh;
@@ -2411,7 +2306,6 @@ canvas {
 
 @supports (content-visibility: auto) {
   .visual-lab,
-  .signal-section,
   .about-section,
   .contact-section {
     content-visibility: auto;
@@ -2645,29 +2539,6 @@ canvas {
     grid-template-columns: 1fr;
   }
 
-  .signal-section {
-    min-height: 105svh;
-  }
-
-  .signal-section__title {
-    width: 96vw;
-    font-size: clamp(4rem, 22vw, 7.2rem);
-  }
-
-  .signal-section__principles {
-    bottom: 10%;
-    gap: 0.5rem;
-  }
-
-  .signal-section__principles p {
-    font-size: 0.47rem;
-  }
-
-  .signal-section__reticle {
-    width: 7rem;
-    height: 7rem;
-  }
-
   .about-section {
     min-height: 0;
     padding: 8rem 1rem 7rem;
@@ -2779,8 +2650,7 @@ canvas {
 }
 
 .perf-lite .project-tile__halo,
-.perf-lite .system-hero__glow span,
-.perf-lite .signal-section__glow {
+.perf-lite .system-hero__glow span {
   filter: blur(26px);
 }
 
