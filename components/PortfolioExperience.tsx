@@ -146,6 +146,36 @@ function ProjectSchematic({ project }: { project: Project }) {
     );
   }
 
+  if (project.processVideo) {
+    return (
+      <div
+        className="project-visual project-visual--video"
+        style={{ "--project-media-ratio": "832 / 1152" } as StyleVariables}
+      >
+        <video
+          controls
+          playsInline
+          preload="none"
+          poster={project.processVideo.poster}
+          aria-label={`${project.title} concept video`}
+        >
+          <source src={project.processVideo.src} type="video/mp4" />
+          Your browser does not support embedded video.
+        </video>
+        <span className="project-visual__scan" aria-hidden="true" />
+        <span
+          className="project-border-motion depth-5"
+          data-reveal="border"
+          data-depth="5"
+          data-fixed-depth
+          aria-hidden="true"
+        />
+        <span className="project-visual__corner project-visual__corner--a" aria-hidden="true" />
+        <span className="project-visual__corner project-visual__corner--b" aria-hidden="true" />
+      </div>
+    );
+  }
+
   return (
     <div
       className={`project-visual project-visual--schematic project-visual--${project.key}`}
@@ -181,43 +211,6 @@ function ProjectSchematic({ project }: { project: Project }) {
         aria-hidden="true"
       />
     </div>
-  );
-}
-
-function ProjectProcessVideo({ project }: { project: Project }) {
-  if (!project.processVideo) return null;
-
-  const descriptionId = `project-video-description-${project.key}`;
-
-  return (
-    <figure
-      className="project-video depth-3"
-      data-depth="3"
-      data-fixed-depth
-      data-reveal="block"
-    >
-      <div className="project-video__rail" aria-hidden="true">
-        <span>{project.processVideo.label}</span>
-        <span>{project.processVideo.meta}</span>
-      </div>
-      <div className="project-video__frame">
-        <video
-          controls
-          playsInline
-          preload="metadata"
-          poster={project.processVideo.poster}
-          aria-label={`${project.title} process video`}
-          aria-describedby={descriptionId}
-        >
-          <source src={project.processVideo.src} type="video/mp4" />
-          Your browser does not support embedded video.
-        </video>
-        <span className="project-video__scan" aria-hidden="true" />
-        <span className="project-video__corner project-video__corner--a" aria-hidden="true" />
-        <span className="project-video__corner project-video__corner--b" aria-hidden="true" />
-      </div>
-      <figcaption id={descriptionId}>{project.processVideo.description}</figcaption>
-    </figure>
   );
 }
 
@@ -316,7 +309,6 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
             </ul>
           </div>
         </div>
-        <ProjectProcessVideo project={project} />
         <footer className="project-tile__footer">
           {/* Full stack, not the first three: these are the exact keywords a
               technical reviewer scans for. */}
@@ -356,10 +348,10 @@ function VisualLab() {
       <header className="visual-lab__head">
         <div>
           <p className="section-kicker" data-reveal="line">Visual lab / selected studies</p>
-          <h2 id="visual-lab-title" data-reveal="text">FORM, LIGHT<br />AND MOTION</h2>
+          <h2 id="visual-lab-title" data-reveal="text">FORM, LIGHT<br />AND MATERIAL</h2>
         </div>
         <p data-reveal="line">
-          A separate visual track for Blender, hard-surface form, materials and product motion.
+          A separate visual track for Blender, hard-surface form, materials and product imagery.
           These studies support the engineering work without pretending to be validated products.
         </p>
       </header>
@@ -369,35 +361,21 @@ function VisualLab() {
           const descriptionId = `visual-lab-description-${study.key}`;
           return (
             <article
-              className={`visual-study visual-study--${study.layout}`}
+              className="visual-study"
               id={`visual-lab-${study.key}`}
               key={study.key}
               data-reveal="block"
             >
               <div className="visual-study__media">
-                {study.video ? (
-                  <video
-                    controls
-                    playsInline
-                    preload="none"
-                    poster={study.video.poster}
-                    aria-label={`${study.title} concept video`}
-                    aria-describedby={descriptionId}
-                  >
-                    <source src={study.video.src} type="video/mp4" />
-                    Your browser does not support embedded video.
-                  </video>
-                ) : study.image ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={study.image.src}
-                    alt={study.image.alt}
-                    width={study.image.width}
-                    height={study.image.height}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : null}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={study.image.src}
+                  alt={study.image.alt}
+                  width={study.image.width}
+                  height={study.image.height}
+                  loading="lazy"
+                  decoding="async"
+                />
               </div>
               <div className="visual-study__copy">
                 <p>{study.number} / {study.discipline}</p>
@@ -637,7 +615,7 @@ export function PortfolioExperience() {
           <div className="work-intro__copy depth-4" data-depth="4">
             <p className="section-kicker" data-reveal="line">Selected CAD + product / 2025—2026</p>
             <h2 id="work-title" data-reveal="text">SELECTED<br />WORK</h2>
-            <p data-reveal="line">Three selected physical-product cases — enclosure direction, native SolidWorks source and assembly evidence.</p>
+            <p data-reveal="line">Four selected cases — working hardware, enclosure direction, native SolidWorks source and product motion.</p>
           </div>
           <p className="work-intro__note depth-5" data-depth="5" aria-hidden="true">FORM / SIGNAL / PROOF</p>
         </header>

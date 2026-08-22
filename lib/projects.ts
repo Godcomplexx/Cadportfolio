@@ -78,9 +78,7 @@ export type VisualStudy = {
   title: string;
   discipline: string;
   description: string;
-  layout: "wide" | "square" | "portrait";
-  image?: ProjectImage;
-  video?: ProjectVideo;
+  image: ProjectImage;
 };
 
 export const projects: Project[] = [
@@ -307,8 +305,32 @@ export const projects: Project[] = [
     overview:
       "This case focuses on communication: how external form, contact interface and an intended internal stack can be explained in one concise visual sequence. It is a visualization concept, not a validated medical device or a mechanical proof case.",
     role: ["I developed the visual direction and enclosure concept."],
-    development: [],
-    details: [],
+    development: [
+      {
+        title: "Form direction",
+        text: "The earpiece silhouette was developed as a compact wearable object with a clearly separated contact layer.",
+      },
+      {
+        title: "Exploded sequence",
+        text: "The animation separates the external shell, contact interface and intended electronics stack in a readable order.",
+      },
+      {
+        title: "Material study",
+        text: "Controlled surfaces, edge highlights and a restrained palette keep the construction legible in a vertical frame.",
+      },
+      {
+        title: "Motion edit",
+        text: "Camera movement and timing compress the assembled form and exploded story into a concise 26-second presentation.",
+      },
+    ],
+    details: [
+      { label: "Format", value: "Vertical product film" },
+      { label: "Duration", value: "00:26" },
+      { label: "Frame", value: "832 × 1152" },
+      { label: "Frame rate", value: "25 fps" },
+      { label: "Focus", value: "Form + exploded stack" },
+      { label: "Output", value: "H.264" },
+    ],
     result:
       "The work defines a concise visual language for a technically informed wearable concept without presenting it as a tested device.",
     nextStep: "Refine lighting, pacing and the captioned presentation export.",
@@ -317,7 +339,7 @@ export const projects: Project[] = [
       next: ["Final render polish", "Captioned export"],
     },
     visualLabel: "VISUALIZATION CONCEPT / MOTION",
-    visualRatio: "00:26 / 9:16",
+    visualRatio: "832 × 1152 / 00:26",
     processVideo: {
       src: publicPath("/media/eeg-wearable/eeg-device2.mp4"),
       poster: publicPath("/media/eeg-wearable/eeg-device2-poster.webp"),
@@ -331,20 +353,10 @@ export const projects: Project[] = [
 ];
 
 export const featuredProjects = projects.filter((project) =>
-  ["copet-pilot", "smartmotion", "modular-system"].includes(project.key),
+  ["copet-pilot", "smartmotion", "modular-system", "eeg-wearable"].includes(project.key),
 );
 
 export const visualStudies: VisualStudy[] = [
-  {
-    key: "eeg",
-    number: "04",
-    title: "Wearable EEG",
-    discipline: "PRODUCT MOTION / EXPLODED STORY",
-    description:
-      "A compact form, contact layer and intended electronics stack explained as one restrained vertical sequence.",
-    layout: "portrait",
-    video: projects.find((project) => project.key === "eeg-wearable")?.processVideo,
-  },
   {
     key: "handheld",
     number: "05",
@@ -352,7 +364,6 @@ export const visualStudies: VisualStudy[] = [
     discipline: "HARD-SURFACE / PRODUCT RENDER",
     description:
       "A stylized handheld device study focused on silhouette, controls, color blocking and presentation.",
-    layout: "square",
     image: {
       src: publicPath("/media/visual-lab/handheld.webp"),
       alt: "Stylized handheld media player render with a circular screen and physical controls.",
@@ -367,7 +378,6 @@ export const visualStudies: VisualStudy[] = [
     discipline: "FORM / TRANSPARENCY / CONTRAST",
     description:
       "A transparent enclosure and organic elements used to test depth, overlap and visual tension.",
-    layout: "square",
     image: {
       src: publicPath("/media/visual-lab/procedural-object.webp"),
       alt: "Transparent hard-surface object with dark organic tentacle-like forms passing through it.",
@@ -382,7 +392,6 @@ export const visualStudies: VisualStudy[] = [
     discipline: "MATERIAL / LIGHTING",
     description:
       "A controlled material study built around refraction, highlights and a restrained studio palette.",
-    layout: "square",
     image: {
       src: publicPath("/media/visual-lab/glass.webp"),
       alt: "Abstract glass object rendered with blue and magenta studio lighting.",
@@ -397,7 +406,6 @@ export const visualStudies: VisualStudy[] = [
     discipline: "SPACE / LIGHT / COMPOSITION",
     description:
       "An environment study balancing a long perspective, warm practical light and a cool ambient field.",
-    layout: "wide",
     image: {
       src: publicPath("/media/visual-lab/interior.webp"),
       alt: "Long atmospheric interior hallway rendered with warm wall lights and a cool window glow.",
@@ -412,7 +420,6 @@ export const visualStudies: VisualStudy[] = [
     discipline: "ENVIRONMENT / PRODUCT VISUALIZATION",
     description:
       "A compact commercial island explored as both a designed object and a small architectural scene.",
-    layout: "square",
     image: {
       src: publicPath("/media/visual-lab/vending.webp"),
       alt: "Isometric vending kiosk island rendered against a soft colored background.",
@@ -457,15 +464,6 @@ export const projectIndex: ProjectIndexEntry[] = [
     status: project.status,
     href: `#project-${project.key}`,
   })),
-  {
-    key: "eeg-wearable",
-    number: "04",
-    title: "Wearable EEG",
-    category: "VISUALIZATION / MOTION",
-    year: "2026",
-    status: "Concept film",
-    href: "#visual-lab-eeg",
-  },
   {
     key: "handheld-media",
     number: "05",
