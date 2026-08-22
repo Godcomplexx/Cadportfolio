@@ -2132,7 +2132,7 @@ canvas {
 .tool-groups h3 {
   margin: 0 0 2.5rem;
   color: rgba(239, 244, 255, 0.88);
-  font: 400 clamp(1.15rem, 1.7vw, 2rem)/1 var(--display);
+  font: 400 clamp(1.05rem, 1.35vw, 1.55rem)/1.2 var(--mono);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
