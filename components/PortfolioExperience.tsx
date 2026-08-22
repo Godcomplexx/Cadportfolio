@@ -512,7 +512,7 @@ export function PortfolioExperience() {
     >
       <nav className="site-rail" aria-label="Primary navigation">
         <a className="site-rail__brand" href="#top" aria-label="Daria Melnikova, home">
-          DD<span>.studio</span>
+          DM / PORTFOLIO
         </a>
         <MusicPlayer />
         {/* data-text feeds the CSS glitch layers; see .site-rail__links a. */}
@@ -579,12 +579,10 @@ export function PortfolioExperience() {
           01 / Current practice
         </p>
 
-        {/* Name block only. The supporting line and the role card were pulled
-            out: three separate statements across the top read as three headers
-            and flattened the hierarchy. */}
+        {/* Compact identity block: name first, then the exact CAD practice line. */}
         <header className="system-hero__intro depth-4" data-depth="4">
-          <p>CAD, Mechanical<br />3D Visualization</p>
           <h1 id="hero-title">Daria<br />Melnikova</h1>
+          <p>CAD / Mechanical Design<br />SolidWorks · Assemblies · Drawings</p>
         </header>
 
         {/* Sits beside the object rather than in the top rail, so the right of
