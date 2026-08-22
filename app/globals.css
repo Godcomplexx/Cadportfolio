@@ -1867,7 +1867,7 @@ canvas {
 
 .visual-lab__head h2 {
   margin: 0;
-  font: 900 clamp(3.8rem, 8.7vw, 10.5rem)/0.78 var(--display);
+  font: 900 clamp(3.8rem, 8.7vw, 10.5rem)/0.86 var(--display);
   letter-spacing: -0.04em;
   text-transform: uppercase;
 }
