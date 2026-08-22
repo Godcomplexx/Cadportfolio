@@ -34,14 +34,6 @@ const navigation = [
 type SectionId = (typeof navigation)[number]["id"];
 type StyleVariables = CSSProperties & Record<`--${string}`, string | number>;
 
-/* Hero callouts. Three, stacked down the left of the object with leader lines
-   running toward it — four smaller ones read as noise rather than annotation. */
-const heroCallouts = [
-  { id: "01", label: "Enclosure" },
-  { id: "02", label: "Assembly" },
-  { id: "03", label: "Drawings" },
-] as const;
-
 const disciplines = [
   {
     number: "01",
@@ -586,18 +578,6 @@ export function PortfolioExperience() {
         <p className="system-hero__marker depth-2" data-depth="2" aria-hidden="true">
           01 / Current practice
         </p>
-
-        {/* Technical callouts. Decorative annotation of the object rather than
-            content, so the whole layer is hidden from assistive tech — the same
-            themes are stated as text in the card. */}
-        <ul className="system-hero__callouts depth-4" data-depth="4" aria-hidden="true">
-          {heroCallouts.map(({ id, label }) => (
-            <li key={id} className="system-hero__callout">
-              <span><b>{id}</b> {label}</span>
-              <i />
-            </li>
-          ))}
-        </ul>
 
         {/* Name block only. The supporting line and the role card were pulled
             out: three separate statements across the top read as three headers
