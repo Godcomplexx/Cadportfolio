@@ -1159,7 +1159,7 @@ canvas {
   display: grid;
   grid-template-rows: auto 1fr auto;
   align-self: start;
-  height: clamp(24rem, 58svh, 34rem);
+  height: clamp(27rem, 64svh, 40rem);
   min-height: 0;
   margin: 0;
   padding: 1.15rem;
@@ -2452,7 +2452,7 @@ canvas {
   }
 
   .project-visual {
-    height: clamp(20rem, 82vw, 26rem);
+    height: clamp(22rem, 92vw, 30rem);
     min-height: 0;
   }
 
