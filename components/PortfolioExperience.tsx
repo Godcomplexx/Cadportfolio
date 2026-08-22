@@ -708,7 +708,6 @@ export function PortfolioExperience() {
       <div className="section-transition" aria-hidden="true" />
       <section className="scene contact-section" id="contact" aria-labelledby="contact-title">
         <div className="contact-section__field depth-0" data-depth="0" aria-hidden="true" />
-        <div className="contact-section__orb depth-1" data-depth="1" aria-hidden="true" />
         <div className="contact-section__dm depth-2" data-depth="2" aria-hidden="true">DM</div>
         <div className="contact-section__copy depth-4" data-depth="4">
           <p className="section-kicker" data-reveal="line">Open to roles and selected collaborations</p>
