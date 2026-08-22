@@ -220,7 +220,7 @@ export const projects: Project[] = [
   },
   {
     key: "modular-system",
-    number: "03",
+    number: "04",
     title: "SolidWorks Mechanical Foundations",
     shortTitle: "SolidWorks Study",
     strapline:
@@ -292,7 +292,7 @@ export const projects: Project[] = [
   },
   {
     key: "eeg-wearable",
-    number: "04",
+    number: "03",
     title: "Wearable EEG",
     shortTitle: "EEG Wearable",
     strapline:
@@ -352,9 +352,16 @@ export const projects: Project[] = [
   },
 ];
 
-export const featuredProjects = projects.filter((project) =>
-  ["copet-pilot", "smartmotion", "modular-system", "eeg-wearable"].includes(project.key),
-);
+const featuredProjectOrder = [
+  "copet-pilot",
+  "smartmotion",
+  "eeg-wearable",
+  "modular-system",
+] as const;
+
+export const featuredProjects = featuredProjectOrder
+  .map((key) => projects.find((project) => project.key === key))
+  .filter((project): project is Project => project !== undefined);
 
 export const visualStudies: VisualStudy[] = [
   {

@@ -67,7 +67,12 @@ const process = [
   { number: "03", title: "Document", output: "Drawings + renders" },
 ] as const;
 
-const projectColors = ["#a8ff35", "#60d9ff", "#ff6bdd", "#c3b8ff"] as const;
+const projectColors: Partial<Record<Project["key"], string>> = {
+  "copet-pilot": "#a8ff35",
+  smartmotion: "#60d9ff",
+  "modular-system": "#ff6bdd",
+  "eeg-wearable": "#c3b8ff",
+};
 
 function firstSentence(text: string) {
   return `${text.split(". ")[0].replace(/\.$/, "")}.`;
@@ -217,7 +222,7 @@ function ProjectSchematic({ project }: { project: Project }) {
 function ProjectTile({ project, index }: { project: Project; index: number }) {
   const style = {
     "--project-index": index,
-    "--project-accent": projectColors[index],
+    "--project-accent": projectColors[project.key] ?? "#c3b8ff",
   } as StyleVariables;
 
   return (
@@ -628,7 +633,6 @@ export function PortfolioExperience() {
         </div>
       </section>
 
-      <div className="section-transition" aria-hidden="true" />
       <VisualLab />
 
       <div className="section-transition" aria-hidden="true" />

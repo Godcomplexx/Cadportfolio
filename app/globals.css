@@ -1081,7 +1081,7 @@ canvas {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0;
-  padding: 0 var(--pad) clamp(8rem, 14vw, 14rem);
+  padding: 0 var(--pad) clamp(2rem, 4vw, 4rem);
   background: transparent;
 }
 
@@ -1782,7 +1782,7 @@ canvas {
 .visual-lab {
   position: relative;
   z-index: 3;
-  padding: clamp(7rem, 11vw, 12rem) var(--pad);
+  padding: clamp(4rem, 6vw, 7rem) var(--pad) clamp(7rem, 11vw, 12rem);
   color: var(--paper);
   background: transparent;
 }
@@ -2367,7 +2367,7 @@ canvas {
 
   .project-gallery {
     display: block;
-    padding: 0 1rem 7rem;
+    padding: 0 1rem 3rem;
     background: transparent;
   }
 
@@ -2427,7 +2427,7 @@ canvas {
   .schematic-object { width: 48%; }
 
   .visual-lab {
-    padding: 7rem 1rem;
+    padding: 4rem 1rem 7rem;
   }
 
   .visual-lab__head h2 {
