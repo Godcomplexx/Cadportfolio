@@ -1060,7 +1060,7 @@ canvas {
 
 .work-intro h2 {
   font-size: clamp(5rem, 15.5vw, 18rem);
-  line-height: 0.72;
+  line-height: 0.86;
 }
 
 .work-intro__copy > p:last-child {
@@ -2544,7 +2544,7 @@ canvas {
 
   .work-intro h2 {
     font-size: clamp(4.7rem, 25vw, 8rem);
-    line-height: 0.7;
+    line-height: 0.82;
   }
 
   .work-intro__copy > p:last-child {
