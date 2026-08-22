@@ -10,8 +10,6 @@ const filters = [
   "PRODUCT / MECHANICAL",
   "EMBEDDED HARDWARE",
   "VISUALIZATION / MOTION",
-  "APPLIED COMPUTATION",
-  "RECONSTRUCTION",
 ] as const;
 
 export function WorkFilter() {

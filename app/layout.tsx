@@ -16,25 +16,25 @@ export const metadata: Metadata = {
       : "https://daria-cad-archive.daydd385.chatgpt.site",
   ),
   title: {
-    default: "Daria Melnikova — CAD, Embedded Systems & Applied AI",
+    default: "Daria Melnikova — CAD & Product Visualization",
     template: "%s — Daria Melnikova",
   },
   description:
-    "SolidWorks CAD, embedded hardware, product visualization and biomedical AI systems by Daria Melnikova.",
+    "SolidWorks CAD, parametric parts, assemblies, technical drawings and product visualization by Daria Melnikova.",
   keywords: [
     "CAD designer",
     "3D designer",
     "product prototyping",
-    "hardware prototyping",
     "SolidWorks",
-    "embedded systems",
-    "biomedical AI",
+    "mechanical design",
+    "technical drawings",
+    "Blender",
     "product visualization",
   ],
   openGraph: {
-    title: "Daria Melnikova — CAD, Embedded Systems & Applied AI",
+    title: "Daria Melnikova — CAD & Product Visualization",
     description:
-      "SolidWorks CAD, working embedded prototypes, product visualization and biomedical AI research.",
+      "SolidWorks parts, assemblies, technical drawings and product visualization.",
     type: "website",
     images: [
       {

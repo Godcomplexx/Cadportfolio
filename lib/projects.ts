@@ -4,21 +4,15 @@ export const PROJECT_KEYS = [
   "copet-pilot",
   "smartmotion",
   "modular-system",
-  "concussion-screening",
   "eeg-wearable",
   "handheld-media",
-  "mri-segmentation",
-  "eeg-seizure-prediction",
-  "hybrid-eeg-speller",
-  "eeg-gcs-assessment",
 ] as const;
 
 export type ProjectKey = (typeof PROJECT_KEYS)[number];
 export type ProjectCategory =
   | "PRODUCT / MECHANICAL"
   | "EMBEDDED HARDWARE"
-  | "VISUALIZATION / MOTION"
-  | "APPLIED COMPUTATION";
+  | "VISUALIZATION / MOTION";
 
 type ProjectImage = {
   src: string;
@@ -76,18 +70,6 @@ export type ProjectIndexEntry = {
   status: string;
   href: string;
   external?: boolean;
-};
-
-export type ResearchProject = {
-  key: ProjectKey;
-  number: string;
-  title: string;
-  summary: string;
-  metric: string;
-  metricLabel: string;
-  tools: string[];
-  image: ProjectImage;
-  href: string;
 };
 
 export type VisualStudy = {
@@ -311,84 +293,8 @@ export const projects: Project[] = [
     tone: "sage",
   },
   {
-    key: "concussion-screening",
-    number: "04",
-    title: "AI Concussion Screening Device",
-    shortTitle: "Concussion Screen",
-    strapline:
-      "A compact vision system that turns eye capture and five screening models into one operator flow.",
-    category: "APPLIED COMPUTATION",
-    categories: ["APPLIED COMPUTATION", "PRODUCT / MECHANICAL"],
-    year: "2026",
-    status: "Functional prototype",
-    tools: ["Orange Pi", "IR camera", "Python", "Computer vision", "ML", "Blender"],
-    overview:
-      "This prototype connects an Orange Pi, infrared eye capture, five analysis models and a guided operator interface. The enclosure render describes the intended physical product while the repository documents the working capture and inference pipeline. It is a screening research prototype, not a clinical diagnostic device.",
-    role: [
-      "I connected the physical device concept to the computer-vision pipeline.",
-      "I structured the capture, inference and operator flow.",
-      "I integrated five model outputs into a single screening sequence.",
-      "I modeled and rendered the enclosure direction.",
-    ],
-    development: [
-      {
-        title: "Capture hardware",
-        text: "An Orange Pi and IR camera establish a compact acquisition path for controlled eye imaging.",
-      },
-      {
-        title: "Inference stack",
-        text: "Five model outputs are orchestrated as one screening pipeline instead of isolated notebook results.",
-      },
-      {
-        title: "Operator flow",
-        text: "The interface guides capture and makes model status legible during a session.",
-      },
-      {
-        title: "Product direction",
-        text: "The CAD/render pass translates the electronics and camera constraints into a compact desktop device.",
-      },
-    ],
-    details: [
-      { label: "Compute", value: "Orange Pi" },
-      { label: "Capture", value: "Infrared eye camera" },
-      { label: "Analysis", value: "5 model outputs" },
-      { label: "Pipeline", value: "Capture → inference → result" },
-      { label: "Interface", value: "Guided operator workflow" },
-      { label: "Scope", value: "Research screening prototype" },
-    ],
-    result:
-      "The project demonstrates an end-to-end path from physical eye capture to a combined machine-learning result and operator-facing interface.",
-    nextStep:
-      "Calibrate capture conditions, publish evaluation details and build the next enclosure around a measured camera geometry.",
-    evidence: {
-      verified: ["Eye capture", "Five-model pipeline", "Device concept"],
-      next: ["Larger evaluation", "Calibration protocol", "Integrated enclosure"],
-    },
-    visualLabel: "DEVICE RENDER + REAL CAPTURE OUTPUT",
-    visualRatio: "PRODUCT DIRECTION / SYSTEM EVIDENCE",
-    actualImage: {
-      src: publicPath("/media/concussion/device-render.webp"),
-      alt: "White compact concussion screening device concept rendered on a dark background.",
-      width: 2560,
-      height: 1440,
-      label: "Enclosure direction",
-    },
-    supportingImage: {
-      src: publicPath("/media/concussion/eye-capture.webp"),
-      alt: "Infrared eye capture interface from the working concussion screening pipeline.",
-      width: 724,
-      height: 350,
-      label: "IR capture output",
-    },
-    source: {
-      label: "View system repository",
-      href: "https://github.com/Godcomplexx/AI-based-Concussion-Screening-Device",
-    },
-    tone: "violet",
-  },
-  {
     key: "eeg-wearable",
-    number: "05",
+    number: "04",
     title: "Wearable EEG",
     shortTitle: "EEG Wearable",
     strapline:
@@ -425,86 +331,13 @@ export const projects: Project[] = [
 ];
 
 export const featuredProjects = projects.filter((project) =>
-  ["copet-pilot", "smartmotion", "modular-system", "concussion-screening"].includes(
-    project.key,
-  ),
+  ["copet-pilot", "smartmotion", "modular-system"].includes(project.key),
 );
-
-export const researchProjects: ResearchProject[] = [
-  {
-    key: "mri-segmentation",
-    number: "07",
-    title: "Medical Image Segmentation",
-    summary:
-      "A containerized MRI processing platform with queued jobs, service boundaries and a lesion-analysis cascade.",
-    metric: "11",
-    metricLabel: "service containers",
-    tools: ["FastAPI", "React", "PostgreSQL", "RabbitMQ", "Celery", "FastSurfer"],
-    image: {
-      src: publicPath("/media/research/mri-architecture.webp"),
-      alt: "Service architecture diagram for the medical image segmentation platform.",
-      width: 819,
-      height: 496,
-    },
-    href: "https://github.com/Godcomplexx/Medical-Image-Segmentation",
-  },
-  {
-    key: "eeg-seizure-prediction",
-    number: "08",
-    title: "EEG Seizure Prediction",
-    summary:
-      "A CNN–LSTM research pipeline for patient-independent EEG seizure prediction and transfer learning.",
-    metric: "86.5%",
-    metricLabel: "sensitivity on unseen patients",
-    tools: ["Python", "PyTorch", "CNN–LSTM", "EEG", "Transfer learning"],
-    image: {
-      src: publicPath("/media/research/seizure-confusion.webp"),
-      alt: "Confusion matrix from the EEG seizure prediction evaluation.",
-      width: 914,
-      height: 828,
-    },
-    href: "https://github.com/Godcomplexx/epilepsy",
-  },
-  {
-    key: "hybrid-eeg-speller",
-    number: "09",
-    title: "Hybrid EEG Speller",
-    summary:
-      "A P300 spelling interface that combines EEG selection with language-model assistance and timing analysis.",
-    metric: "06",
-    metricLabel: "participants in the study",
-    tools: ["P300", "EEG", "Python", "LLM assistance", "Experiment design"],
-    image: {
-      src: publicPath("/media/research/hybrid-eeg.webp"),
-      alt: "Metrics dashboard for the hybrid P300 and language-model EEG speller study.",
-      width: 1400,
-      height: 847,
-    },
-    href: "https://github.com/Godcomplexx/Hybrid-EEG-Speller-P300-LLM-",
-  },
-  {
-    key: "eeg-gcs-assessment",
-    number: "10",
-    title: "EEG Consciousness Assessment",
-    summary:
-      "An EEG feature-analysis study for three-class consciousness assessment against Glasgow Coma Scale labels.",
-    metric: "76.2%",
-    metricLabel: "best three-class accuracy",
-    tools: ["EEG", "Python", "Feature analysis", "GCS", "Classification"],
-    image: {
-      src: publicPath("/media/research/gcs-heatmap.webp"),
-      alt: "EEG feature correlation heatmap from the GCS consciousness assessment study.",
-      width: 1000,
-      height: 800,
-    },
-    href: "https://github.com/Godcomplexx/EEG-based-Consciousness-Assessment-GCS-",
-  },
-];
 
 export const visualStudies: VisualStudy[] = [
   {
     key: "eeg",
-    number: "05",
+    number: "04",
     title: "Wearable EEG",
     discipline: "PRODUCT MOTION / EXPLODED STORY",
     description:
@@ -514,7 +347,7 @@ export const visualStudies: VisualStudy[] = [
   },
   {
     key: "handheld",
-    number: "06",
+    number: "05",
     title: "Handheld Media Object",
     discipline: "HARD-SURFACE / PRODUCT RENDER",
     description:
@@ -591,8 +424,8 @@ export const visualStudies: VisualStudy[] = [
 
 export const practiceMetrics = [
   { value: "32", label: "native SolidWorks documents" },
-  { value: "02", label: "working embedded systems" },
-  { value: "04", label: "biomedical AI research cases" },
+  { value: "08", label: "editable assemblies" },
+  { value: "08", label: "linked technical drawings" },
 ] as const;
 
 export const toolGroups = [
@@ -601,12 +434,12 @@ export const toolGroups = [
     tools: ["SolidWorks", "Plasticity", "Blender", "3D printing"],
   },
   {
-    title: "Embedded systems",
-    tools: ["ESP32", "ESP-IDF", "Zephyr", "C / C++", "BLE", "I²C"],
+    title: "Assemblies + documentation",
+    tools: ["Assembly mates", "Configurations", "Section views", "Drawing layouts"],
   },
   {
-    title: "Applied computation",
-    tools: ["Python", "PyTorch", "FastAPI", "Computer vision", "EEG / MRI"],
+    title: "Prototype development",
+    tools: ["Enclosure studies", "Component layout", "3D printing", "Fit iteration"],
   },
   {
     title: "Visual communication",
@@ -626,7 +459,7 @@ export const projectIndex: ProjectIndexEntry[] = [
   })),
   {
     key: "eeg-wearable",
-    number: "05",
+    number: "04",
     title: "Wearable EEG",
     category: "VISUALIZATION / MOTION",
     year: "2026",
@@ -635,22 +468,13 @@ export const projectIndex: ProjectIndexEntry[] = [
   },
   {
     key: "handheld-media",
-    number: "06",
+    number: "05",
     title: "Handheld Media Object",
     category: "VISUALIZATION / MOTION",
     year: "2026",
     status: "Render study",
     href: "#visual-lab-handheld",
   },
-  ...researchProjects.map((project) => ({
-    key: project.key,
-    number: project.number,
-    title: project.title,
-    category: "APPLIED COMPUTATION" as const,
-    year: "2026",
-    status: "Research code",
-    href: `#research-${project.key}`,
-  })),
 ];
 
 export const projectByKey = Object.fromEntries(

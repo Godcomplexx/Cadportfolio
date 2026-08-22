@@ -9,7 +9,6 @@ import {
   featuredProjects,
   practiceMetrics,
   projectIndex,
-  researchProjects,
   toolGroups,
   visualStudies,
   type Project,
@@ -39,41 +38,41 @@ type StyleVariables = CSSProperties & Record<`--${string}`, string | number>;
    running toward it — four smaller ones read as noise rather than annotation. */
 const heroCallouts = [
   { id: "01", label: "Enclosure" },
-  { id: "02", label: "Interaction" },
-  { id: "03", label: "Embedded system" },
+  { id: "02", label: "Assembly" },
+  { id: "03", label: "Drawings" },
 ] as const;
 
 const disciplines = [
   {
     number: "01",
-    title: "Product / Mechanical",
-    text: "Enclosures, parts and assembly logic.",
-    tags: "FORM / FIT / ASSEMBLY",
+    title: "Parametric Modeling",
+    text: "Editable parts, features and design intent.",
+    tags: "SKETCH / FEATURE / FORM",
   },
   {
     number: "02",
-    title: "Embedded Hardware",
-    text: "Electronics, sensors and working behavior.",
-    tags: "BOARD / SIGNAL / TEST",
+    title: "Assembly Design",
+    text: "Mates, constraints and component relationships.",
+    tags: "MATE / FIT / ASSEMBLY",
   },
   {
     number: "03",
-    title: "Visualization / Motion",
-    text: "Materials, light and product stories.",
-    tags: "LIGHT / MATERIAL / STORY",
+    title: "Technical Drawings",
+    text: "Orthographic views, sections and layouts.",
+    tags: "VIEW / SECTION / SHEET",
   },
   {
     number: "04",
-    title: "Applied Computation",
-    text: "ML, computer vision and biomedical systems.",
-    tags: "MODEL / VISION / SIGNAL",
+    title: "Product Visualization",
+    text: "Materials, light and product presentation.",
+    tags: "LIGHT / MATERIAL / RENDER",
   },
 ] as const;
 
 const process = [
-  { number: "01", title: "Model", output: "CAD + assembly" },
-  { number: "02", title: "Integrate", output: "Working prototype" },
-  { number: "03", title: "Prove", output: "Result + next step" },
+  { number: "01", title: "Model", output: "Editable CAD" },
+  { number: "02", title: "Assemble", output: "Constraints + fit" },
+  { number: "03", title: "Document", output: "Drawings + renders" },
 ] as const;
 
 const projectColors = ["#a8ff35", "#60d9ff", "#ff6bdd", "#c3b8ff"] as const;
@@ -352,61 +351,6 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
   );
 }
 
-function ResearchArchive() {
-  return (
-    <section className="research-section" id="research" aria-labelledby="research-title">
-      <header className="research-section__head">
-        <div>
-          <p className="section-kicker" data-reveal="line">Research / computation</p>
-          <h2 id="research-title" data-reveal="text">SYSTEMS BEYOND<br />THE OBJECT</h2>
-        </div>
-        <p data-reveal="line">
-          Biomedical signal, imaging and computer-vision work shown as compact evidence cards —
-          enough to understand the system, with source repositories for the full implementation.
-        </p>
-      </header>
-
-      <div className="research-grid">
-        {researchProjects.map((project) => (
-          <article
-            className="research-card"
-            id={`research-${project.key}`}
-            key={project.key}
-            data-reveal="block"
-          >
-            <a href={project.href} target="_blank" rel="noreferrer">
-              <div className="research-card__media">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={project.image.src}
-                  alt={project.image.alt}
-                  width={project.image.width}
-                  height={project.image.height}
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-              <div className="research-card__body">
-                <p className="research-card__index">{project.number} / RESEARCH CODE</p>
-                <h3>{project.title}</h3>
-                <p>{project.summary}</p>
-                <div className="research-card__metric">
-                  <strong>{project.metric}</strong>
-                  <span>{project.metricLabel}</span>
-                </div>
-                <ul aria-label={`${project.title} tools`}>
-                  {project.tools.map((tool) => <li key={tool}>{tool}</li>)}
-                </ul>
-                <span className="research-card__link">Open repository ↗</span>
-              </div>
-            </a>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function VisualLab() {
   return (
     <section className="visual-lab" id="visual-lab" aria-labelledby="visual-lab-title">
@@ -659,18 +603,18 @@ export function PortfolioExperience() {
             out: three separate statements across the top read as three headers
             and flattened the hierarchy. */}
         <header className="system-hero__intro depth-4" data-depth="4">
-          <p>R&amp;D, Product<br />Systems &amp; CAD</p>
+          <p>CAD, Mechanical<br />3D Visualization</p>
           <h1 id="hero-title">Daria<br />Melnikova</h1>
         </header>
 
         {/* Sits beside the object rather than in the top rail, so the right of
             the composition carries meaning instead of a second masthead. */}
         <dl className="system-hero__card depth-4" data-depth="4">
-          <dt>Designing /</dt>
-          <dd>Physical systems</dd>
-          <dd>Embedded behavior</dd>
-          <dd>Internal architecture</dd>
-          <dd>Working prototypes</dd>
+          <dt>CAD practice /</dt>
+          <dd>Parametric parts</dd>
+          <dd>Assembly logic</dd>
+          <dd>Technical drawings</dd>
+          <dd>Product visualization</dd>
         </dl>
 
         <p
@@ -706,9 +650,9 @@ export function PortfolioExperience() {
             01—{String(featuredProjects.length).padStart(2, "0")}
           </p>
           <div className="work-intro__copy depth-4" data-depth="4">
-            <p className="section-kicker" data-reveal="line">Selected systems / 2025—2026</p>
+            <p className="section-kicker" data-reveal="line">Selected CAD + product / 2025—2026</p>
             <h2 id="work-title" data-reveal="text">SELECTED<br />WORK</h2>
-            <p data-reveal="line">Four selected systems — embedded prototypes, native SolidWorks evidence and an applied computer-vision device.</p>
+            <p data-reveal="line">Three selected physical-product cases — enclosure direction, native SolidWorks source and assembly evidence.</p>
           </div>
           <p className="work-intro__note depth-5" data-depth="5" aria-hidden="true">FORM / SIGNAL / PROOF</p>
         </header>
@@ -720,9 +664,6 @@ export function PortfolioExperience() {
           ))}
         </div>
       </section>
-
-      <div className="section-transition" aria-hidden="true" />
-      <ResearchArchive />
 
       <div className="section-transition" aria-hidden="true" />
       <VisualLab />
@@ -750,13 +691,13 @@ export function PortfolioExperience() {
         <p className="about-section__ghost depth-2" data-depth="2" aria-hidden="true">ONE PRACTICE</p>
 
         <div className="about-section__copy depth-4" data-depth="4">
-          <p className="section-kicker" data-reveal="line">Connected disciplines</p>
+          <p className="section-kicker" data-reveal="line">CAD practice</p>
           <h2 id="about-title" data-reveal="text">
-            FORM + SIGNAL<br />IN ONE PRACTICE
+            MODEL + ASSEMBLE<br />DOCUMENT + RENDER
           </h2>
           <p data-reveal="line">
-            I work across CAD, electronics, visual communication and applied AI — connecting
-            the visible object to the system that makes it useful.
+            I work across SolidWorks modeling, assemblies, technical drawings and Blender
+            visualization — from editable geometry to a clear product presentation.
           </p>
         </div>
 
