@@ -34,10 +34,13 @@ export function MediaField({
           // avoids a deployment-time image optimisation dependency.
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={project.actualImage}
-            alt={project.actualImageAlt}
+            src={project.actualImage.src}
+            alt={project.actualImage.alt}
+            width={project.actualImage.width}
+            height={project.actualImage.height}
             loading={priority ? "eager" : "lazy"}
             fetchPriority={priority ? "high" : "auto"}
+            decoding="async"
           />
         ) : (
           <div
@@ -63,7 +66,7 @@ export function MediaField({
         <i />
       </div>
       <figcaption className="sr-only">
-        {project.actualImageAlt ?? `Composition placeholder for ${project.title}`}
+        {project.actualImage?.alt ?? `Composition placeholder for ${project.title}`}
       </figcaption>
     </figure>
   );

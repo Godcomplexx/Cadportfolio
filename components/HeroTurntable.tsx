@@ -31,8 +31,10 @@ const REST = 0.5;
 const TURN_SPEED = 0.42;
 /** Keep decoded seeks close together so the browser never skips a large arc. */
 const MAX_FRAME_STEP = 2;
-/** Seeking compressed video faster than this adds decode work, not smoothness. */
-const SEEK_INTERVAL = 1000 / 30;
+/** Match the source cadence; extra seeks only add decode work. */
+const SEEK_INTERVAL = 1000 / FPS;
+/** Give the poster the first paint before the 4.82 MB turntable is requested. */
+const IDLE_LOAD_DELAY = 700;
 
 export function HeroTurntable() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -44,6 +46,10 @@ export function HeroTurntable() {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const coarse = window.matchMedia("(pointer: coarse)").matches;
 
+    // Touch and reduced-motion visitors get the lightweight poster only. The
+    // turntable has no useful interaction for either mode.
+    if (reduced || coarse) return;
+
     let target = REST;
     let current = REST;
     let frame = 0;
@@ -51,20 +57,24 @@ export function HeroTurntable() {
     let previousSeekTimestamp = 0;
     let requestedFrame = Math.round(REST * (FRAMES - 1));
     let visible = true;
+    let sourceRequested = false;
+    let wantsAnimation = false;
+    let idleCallback = 0;
+
+    const requestSource = () => {
+      if (sourceRequested) return;
+      sourceRequested = true;
+      video.preload = "metadata";
+      video.src = CLIP_ALPHA;
+      video.load();
+    };
 
     const onLoaded = () => {
       // Park on the resting frame so the first paint is not frame zero.
       video.currentTime = REST * DURATION;
+      if (wantsAnimation) startAnimation();
     };
-    // The clip may already be buffered by the time this effect runs, in which
-    // case the event has fired and will not fire again.
-    if (video.readyState >= 2) onLoaded();
-    else video.addEventListener("loadeddata", onLoaded);
-
-    // Static devices simply hold the resting pose.
-    if (reduced || coarse) {
-      return () => video.removeEventListener("loadeddata", onLoaded);
-    }
+    video.addEventListener("loadeddata", onLoaded);
 
     const onMove = (event: PointerEvent) => {
       if (!visible) return;
@@ -72,6 +82,7 @@ export function HeroTurntable() {
       // Keep the target exact. The animation loop supplies consistent
       // smoothing regardless of the mouse polling rate.
       target = REST - (x - 0.5) * SWEEP;
+      requestSource();
       startAnimation();
     };
     const onLeave = () => {
@@ -131,31 +142,55 @@ export function HeroTurntable() {
       frame = window.requestAnimationFrame(tick);
     };
 
-    function startAnimation() {
+    const startAnimation = () => {
       if (frame || !visible) return;
+      if (video.readyState < 2) {
+        wantsAnimation = true;
+        return;
+      }
+      wantsAnimation = false;
       previousTimestamp = performance.now();
       frame = window.requestAnimationFrame(tick);
-    }
+    };
 
     const hero = video.closest(".system-hero");
     const scrollRoot = document.querySelector<HTMLElement>("[data-scroll-container]");
     const visibilityObserver = new IntersectionObserver(
       ([entry]) => {
+        const wasVisible = visible;
         visible = entry.isIntersecting;
         if (!visible && frame) {
           window.cancelAnimationFrame(frame);
           frame = 0;
+        } else if (visible && !wasVisible) {
+          // A shared URL may open below the hero. Load the turntable only if
+          // the visitor later scrolls back into its viewport.
+          requestSource();
         }
       },
       { root: scrollRoot, threshold: 0.01 },
     );
     if (hero) visibilityObserver.observe(hero);
 
+    // Desktop starts with the 42 KB poster. The large source is attached only
+    // after the page has had time to paint, or immediately on real intent.
+    const idleDelay = window.setTimeout(() => {
+      if ("requestIdleCallback" in window) {
+        idleCallback = window.requestIdleCallback(() => {
+          if (visible) requestSource();
+        }, { timeout: 900 });
+      } else if (visible) {
+        requestSource();
+      }
+    }, IDLE_LOAD_DELAY);
+
     window.addEventListener("pointermove", onMove, { passive: true });
     document.addEventListener("pointerleave", onLeave);
 
     return () => {
       window.cancelAnimationFrame(frame);
+      window.clearTimeout(idleDelay);
+      if (idleCallback) window.cancelIdleCallback(idleCallback);
       visibilityObserver.disconnect();
       window.removeEventListener("pointermove", onMove);
       document.removeEventListener("pointerleave", onLeave);
@@ -169,12 +204,10 @@ export function HeroTurntable() {
         ref={videoRef}
         muted
         playsInline
-        preload="auto"
+        preload="none"
         poster={CLIP_POSTER}
         // Never auto-plays: every frame comes from pointer position.
-      >
-        <source src={CLIP_ALPHA} type="video/webm" />
-      </video>
+      />
     </div>
   );
 }

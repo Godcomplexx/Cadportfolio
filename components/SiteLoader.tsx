@@ -5,25 +5,32 @@ import { useEffect, useState } from "react";
 /**
  * Boot sequence.
  *
- *  1. A ~140px progress bar fills as fonts and WebGL assets settle.
- *     Width transitions over 520ms.
- *  2. At 100% the loader holds ~250ms, then fades out over 250ms.
- *  3. The page is revealed through a pixellated radial mask that opens from
- *     the centre over ~0.8s — square dots along the mask edge rather than a
- *     plain fade.
+ *  1. The first visit gets a short, deterministic boot pulse.
+ *  2. The page is revealed through the existing pixellated radial mask.
+ *  3. Repeat views in the same tab skip the loader entirely.
  */
 
-const HOLD_MS = 250;
-const FADE_MS = 250;
-const REVEAL_MS = 800;
+const FIRST_VISIT_KEY = "cadtfolio-loader-seen";
+const HOLD_MS = 240;
+const FADE_MS = 160;
+const REVEAL_MS = 300;
 
 export function SiteLoader() {
   const [progress, setProgress] = useState(0);
   const [phase, setPhase] = useState<"loading" | "revealing" | "done">("loading");
 
   useEffect(() => {
-    // Respect reduced motion: skip straight to the finished state.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let seen = false;
+    try {
+      seen = window.sessionStorage.getItem(FIRST_VISIT_KEY) === "1";
+    } catch {
+      // Storage can be unavailable in hardened/private browser modes. A short
+      // loader is still safe, so fall through to the first-visit path.
+    }
+
+    // Motion-sensitive and repeat visitors should never wait behind a mask.
+    if (reduced || seen) {
       document.documentElement.classList.add("loaded");
       const skip = window.setTimeout(() => setPhase("done"), 0);
       return () => window.clearTimeout(skip);
@@ -32,52 +39,30 @@ export function SiteLoader() {
     let cancelled = false;
     const timers: number[] = [];
 
-    const finish = () => {
-      if (cancelled) return;
-      setProgress(100);
-      timers.push(
-        window.setTimeout(() => {
-          if (cancelled) return;
-          setPhase("revealing");
-          document.documentElement.classList.add("loaded");
-          timers.push(
-            window.setTimeout(() => {
-              if (!cancelled) setPhase("done");
-            }, REVEAL_MS + FADE_MS),
-          );
-        }, HOLD_MS),
-      );
-    };
+    try {
+      window.sessionStorage.setItem(FIRST_VISIT_KEY, "1");
+    } catch {
+      // See the read guard above.
+    }
 
-    // Track real readiness: fonts plus window load, with a hard ceiling so a
-    // stalled asset can never trap the visitor behind the loader.
-    const signals: Promise<unknown>[] = [
-      document.fonts?.ready ?? Promise.resolve(),
-      new Promise<void>((resolve) => {
-        if (document.readyState === "complete") resolve();
-        else window.addEventListener("load", () => resolve(), { once: true });
-      }),
-    ];
-
-    let ticked = 0;
-    const creep = window.setInterval(() => {
-      ticked += 1;
-      if (cancelled) return;
-      // Ease toward 90% while waiting; the real completion pushes it to 100.
-      setProgress((current) => (current < 90 ? current + (90 - current) * 0.18 : current));
-      if (ticked > 40) window.clearInterval(creep);
-    }, 120);
-    timers.push(creep);
-
-    Promise.race([
-      Promise.all(signals),
-      new Promise((resolve) => timers.push(window.setTimeout(resolve, 6000))),
-    ]).then(finish);
+    const progressFrame = window.requestAnimationFrame(() => setProgress(100));
+    timers.push(
+      window.setTimeout(() => {
+        if (cancelled) return;
+        setPhase("revealing");
+        document.documentElement.classList.add("loaded");
+        timers.push(
+          window.setTimeout(() => {
+            if (!cancelled) setPhase("done");
+          }, Math.max(REVEAL_MS, FADE_MS)),
+        );
+      }, HOLD_MS),
+    );
 
     return () => {
       cancelled = true;
+      window.cancelAnimationFrame(progressFrame);
       timers.forEach((timer) => window.clearTimeout(timer));
-      window.clearInterval(creep);
     };
   }, []);
 

@@ -4,10 +4,13 @@ export const PROJECT_KEYS = [
   "copet-pilot",
   "smartmotion",
   "modular-system",
+  "concussion-screening",
   "eeg-wearable",
   "handheld-media",
-  "photogrammetry",
+  "mri-segmentation",
   "eeg-seizure-prediction",
+  "hybrid-eeg-speller",
+  "eeg-gcs-assessment",
 ] as const;
 
 export type ProjectKey = (typeof PROJECT_KEYS)[number];
@@ -15,8 +18,23 @@ export type ProjectCategory =
   | "PRODUCT / MECHANICAL"
   | "EMBEDDED HARDWARE"
   | "VISUALIZATION / MOTION"
-  | "RECONSTRUCTION"
   | "APPLIED COMPUTATION";
+
+type ProjectImage = {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  label?: string;
+};
+
+type ProjectVideo = {
+  src: string;
+  poster: string;
+  label: string;
+  meta: string;
+  description: string;
+};
 
 export type Project = {
   key: ProjectKey;
@@ -29,9 +47,9 @@ export type Project = {
   year: string;
   status:
     | "Concept"
-    | "Prototype"
-    | "Working prototype"
-    | "Evidence in progress";
+    | "Documented study"
+    | "Functional prototype"
+    | "Working prototype";
   tools: string[];
   overview: string;
   role: string[];
@@ -42,15 +60,9 @@ export type Project = {
   evidence: { verified: string[]; next: string[] };
   visualLabel: string;
   visualRatio: string;
-  actualImage?: string;
-  actualImageAlt?: string;
-  processVideo?: {
-    src: string;
-    poster: string;
-    label: string;
-    meta: string;
-    description: string;
-  };
+  actualImage?: ProjectImage;
+  supportingImage?: ProjectImage;
+  processVideo?: ProjectVideo;
   source?: { label: string; href: string };
   tone: "coral" | "blue" | "sage" | "violet";
 };
@@ -62,8 +74,31 @@ export type ProjectIndexEntry = {
   category: ProjectCategory;
   year: string;
   status: string;
-  href?: string;
+  href: string;
   external?: boolean;
+};
+
+export type ResearchProject = {
+  key: ProjectKey;
+  number: string;
+  title: string;
+  summary: string;
+  metric: string;
+  metricLabel: string;
+  tools: string[];
+  image: ProjectImage;
+  href: string;
+};
+
+export type VisualStudy = {
+  key: string;
+  number: string;
+  title: string;
+  discipline: string;
+  description: string;
+  layout: "wide" | "square" | "portrait";
+  image?: ProjectImage;
+  video?: ProjectVideo;
 };
 
 export const projects: Project[] = [
@@ -94,7 +129,7 @@ export const projects: Project[] = [
       },
       {
         title: "Physical integration",
-        text: "The present open build establishes the real component stack and exposes the constraints for the enclosure pass.",
+        text: "The open build establishes the real component stack and exposes the constraints for the enclosure pass.",
       },
       {
         title: "Interaction proof",
@@ -102,7 +137,7 @@ export const projects: Project[] = [
       },
       {
         title: "Enclosure brief",
-        text: "The next CAD stage must package the proven stack with service access, cable routing and repeatable assembly.",
+        text: "The next CAD stage packages the proven stack with service access, cable routing and repeatable assembly.",
       },
     ],
     details: [
@@ -122,11 +157,13 @@ export const projects: Project[] = [
       next: ["Enclosure CAD", "Section view", "Exploded assembly"],
     },
     visualLabel: "CURRENT PROTOTYPE / HARDWARE INTEGRATION",
-    visualRatio: "4:3 / BUILD EVIDENCE",
-    actualImage:
-      "https://raw.githubusercontent.com/Godcomplexx/COpet_pilot/main/docs/media/copet-hero.jpg",
-    actualImageAlt:
-      "Working CoPet Pilot electronics prototype with an ESP32 display, controls, sensors and wired modules.",
+    visualRatio: "1600 × 1406 / BUILD EVIDENCE",
+    actualImage: {
+      src: publicPath("/media/copet-hero.jpg"),
+      alt: "Working CoPet Pilot electronics prototype with an ESP32 display, controls, sensors and wired modules.",
+      width: 1600,
+      height: 1406,
+    },
     source: {
       label: "View prototype documentation",
       href: "https://github.com/Godcomplexx/COpet_pilot",
@@ -188,10 +225,13 @@ export const projects: Project[] = [
       next: ["Assembled enclosure", "Internal layout", "Fit test"],
     },
     visualLabel: "CONCEPT RENDER / ENCLOSURE DIRECTION",
-    visualRatio: "1:1 / SOURCE IMAGE",
-    actualImage: publicPath("/media/smartmotion-prototype.webp"),
-    actualImageAlt:
-      "Green organic SmartMotion keychain enclosure concept suspended from a metal clip against a cloudy sky.",
+    visualRatio: "1000 × 1000 / SOURCE IMAGE",
+    actualImage: {
+      src: publicPath("/media/smartmotion-prototype.webp"),
+      alt: "Green organic SmartMotion keychain enclosure concept suspended from a metal clip against a cloudy sky.",
+      width: 1000,
+      height: 1000,
+    },
     source: {
       label: "View firmware and hardware documentation",
       href: "https://github.com/Godcomplexx/Keychain_motion",
@@ -201,60 +241,154 @@ export const projects: Project[] = [
   {
     key: "modular-system",
     number: "03",
-    title: "Mechanical Design Study",
-    shortTitle: "Mechanical Study",
+    title: "SolidWorks Mechanical Foundations",
+    shortTitle: "SolidWorks Study",
     strapline:
-      "A hard-surface CAD study built around repeatable interfaces and readable assembly logic.",
+      "A documented CAD practice spanning parts, assemblies and production-style drawings.",
     category: "PRODUCT / MECHANICAL",
     categories: ["PRODUCT / MECHANICAL"],
-    year: "2025",
-    status: "Evidence in progress",
-    tools: ["SolidWorks", "Plasticity", "Blender", "3D printing"],
+    year: "2025—2026",
+    status: "Documented study",
+    tools: ["SolidWorks", "Part modeling", "Assemblies", "Drawings", "Design intent"],
     overview:
-      "This study explores how differently sized housings can share one construction language. Openings, mounting surfaces and repeated details are treated as a system rather than isolated forms. It remains explicitly marked as a study until dimensioned drawings and physical fit-test evidence are published.",
+      "This is a real SolidWorks study archive, not a placeholder concept. It contains 32 native CAD documents: 16 parts, 8 assemblies and 8 drawings. The work covers parametric features, patterns, configurations, mating, section views and drawing layouts; the case presents it honestly as mechanical foundations rather than manufacturing validation.",
     role: [
-      "I built the hard-surface CAD components.",
-      "I developed the repeated openings and interface language.",
-      "I organized the assembly hierarchy and exploded presentation.",
-      "I prepared the concept for prototype evaluation.",
+      "I modeled the parts and preserved editable feature histories.",
+      "I assembled components with repeatable mating logic.",
+      "I produced part and assembly drawings with orthographic and section views.",
+      "I organized the native source set for continued iteration.",
     ],
     development: [
       {
-        title: "Shared language",
-        text: "Recurring radii, seams and openings keep differently sized modules visually related.",
+        title: "Part system",
+        text: "Brackets, sleeves, plates, shafts and enclosure elements build confidence with sketches, patterns, fillets and configurations.",
       },
       {
-        title: "Interface logic",
-        text: "Mounting surfaces and connection points are separated from the outer form so they can evolve independently.",
+        title: "Assembly logic",
+        text: "Eight native assemblies connect the parts through constraints and repeated components rather than flattened geometry.",
       },
       {
-        title: "Proof plan",
-        text: "Assembly, exploded view, section A–A, details, dimensions and a Rev A to Rev B fit test form the evidence set.",
+        title: "Drawing evidence",
+        text: "Eight drawings document orthographic views, sections and assembly layouts directly from the CAD source.",
+      },
+      {
+        title: "Next proof",
+        text: "The next portfolio pass should add tolerances, one manufacturing drawing set and a physical fit-test revision.",
       },
     ],
     details: [
-      { label: "System", value: "Repeated housing family" },
-      { label: "Focus", value: "Interfaces, openings, hierarchy" },
-      { label: "Output", value: "CAD assembly + exploded view" },
-      { label: "Status", value: "Evidence in progress" },
-      { label: "Evidence pending", value: "Dimensions + fit testing" },
-      { label: "Method", value: "Additive prototype evaluation" },
+      { label: "Native parts", value: "16 × SLDPRT" },
+      { label: "Assemblies", value: "8 × SLDASM" },
+      { label: "Drawings", value: "8 × SLDDRW" },
+      { label: "Focus", value: "Features, mates, configurations" },
+      { label: "Documentation", value: "Views, sections, layouts" },
+      { label: "Archive", value: "32 editable CAD documents" },
     ],
     result:
-      "The current study establishes a coherent part family and assembly hierarchy without claiming unverified manufacturing performance.",
+      "The archive demonstrates a complete beginner-to-intermediate SolidWorks workflow across editable parts, assemblies and linked drawings.",
     nextStep:
-      "Publish section A–A, dimensioned drawings, joint close-ups and one repeatable physical fit test.",
+      "Select one mechanism for a tolerance-aware drawing package and document a physical Rev A to Rev B fit test.",
     evidence: {
-      verified: ["CAD assembly", "Interface study"],
-      next: ["Section A–A", "Dimensioned drawing", "Rev A → B fit test"],
+      verified: ["Native parts", "Native assemblies", "Linked drawings"],
+      next: ["Tolerance scheme", "Manufacturing drawing", "Physical fit test"],
     },
-    visualLabel: "EVIDENCE MAP / MECHANICAL STUDY",
-    visualRatio: "ASSEMBLY → FIT TEST",
+    visualLabel: "NATIVE SOLIDWORKS SOURCE / ASSEMBLY + DRAWING",
+    visualRatio: "32 DOCUMENTS / EDITABLE CAD",
+    actualImage: {
+      src: publicPath("/media/solidworks/assembly.webp"),
+      alt: "SolidWorks assembly preview of a rounded mechanical housing with repeated fasteners and mounting feet.",
+      width: 1200,
+      height: 900,
+      label: "Assembly / SLDASM",
+    },
+    supportingImage: {
+      src: publicPath("/media/solidworks/drawing.webp"),
+      alt: "SolidWorks technical drawing sheet with isometric, front and side views of a bracket.",
+      width: 1200,
+      height: 900,
+      label: "Drawing / SLDDRW",
+    },
     tone: "sage",
   },
   {
-    key: "eeg-wearable",
+    key: "concussion-screening",
     number: "04",
+    title: "AI Concussion Screening Device",
+    shortTitle: "Concussion Screen",
+    strapline:
+      "A compact vision system that turns eye capture and five screening models into one operator flow.",
+    category: "APPLIED COMPUTATION",
+    categories: ["APPLIED COMPUTATION", "PRODUCT / MECHANICAL"],
+    year: "2026",
+    status: "Functional prototype",
+    tools: ["Orange Pi", "IR camera", "Python", "Computer vision", "ML", "Blender"],
+    overview:
+      "This prototype connects an Orange Pi, infrared eye capture, five analysis models and a guided operator interface. The enclosure render describes the intended physical product while the repository documents the working capture and inference pipeline. It is a screening research prototype, not a clinical diagnostic device.",
+    role: [
+      "I connected the physical device concept to the computer-vision pipeline.",
+      "I structured the capture, inference and operator flow.",
+      "I integrated five model outputs into a single screening sequence.",
+      "I modeled and rendered the enclosure direction.",
+    ],
+    development: [
+      {
+        title: "Capture hardware",
+        text: "An Orange Pi and IR camera establish a compact acquisition path for controlled eye imaging.",
+      },
+      {
+        title: "Inference stack",
+        text: "Five model outputs are orchestrated as one screening pipeline instead of isolated notebook results.",
+      },
+      {
+        title: "Operator flow",
+        text: "The interface guides capture and makes model status legible during a session.",
+      },
+      {
+        title: "Product direction",
+        text: "The CAD/render pass translates the electronics and camera constraints into a compact desktop device.",
+      },
+    ],
+    details: [
+      { label: "Compute", value: "Orange Pi" },
+      { label: "Capture", value: "Infrared eye camera" },
+      { label: "Analysis", value: "5 model outputs" },
+      { label: "Pipeline", value: "Capture → inference → result" },
+      { label: "Interface", value: "Guided operator workflow" },
+      { label: "Scope", value: "Research screening prototype" },
+    ],
+    result:
+      "The project demonstrates an end-to-end path from physical eye capture to a combined machine-learning result and operator-facing interface.",
+    nextStep:
+      "Calibrate capture conditions, publish evaluation details and build the next enclosure around a measured camera geometry.",
+    evidence: {
+      verified: ["Eye capture", "Five-model pipeline", "Device concept"],
+      next: ["Larger evaluation", "Calibration protocol", "Integrated enclosure"],
+    },
+    visualLabel: "DEVICE RENDER + REAL CAPTURE OUTPUT",
+    visualRatio: "PRODUCT DIRECTION / SYSTEM EVIDENCE",
+    actualImage: {
+      src: publicPath("/media/concussion/device-render.webp"),
+      alt: "White compact concussion screening device concept rendered on a dark background.",
+      width: 2560,
+      height: 1440,
+      label: "Enclosure direction",
+    },
+    supportingImage: {
+      src: publicPath("/media/concussion/eye-capture.webp"),
+      alt: "Infrared eye capture interface from the working concussion screening pipeline.",
+      width: 724,
+      height: 350,
+      label: "IR capture output",
+    },
+    source: {
+      label: "View system repository",
+      href: "https://github.com/Godcomplexx/AI-based-Concussion-Screening-Device",
+    },
+    tone: "violet",
+  },
+  {
+    key: "eeg-wearable",
+    number: "05",
     title: "Wearable EEG",
     shortTitle: "EEG Wearable",
     strapline:
@@ -266,44 +400,18 @@ export const projects: Project[] = [
     tools: ["Blender", "Plasticity", "Lighting", "Animation", "Compositing"],
     overview:
       "This case focuses on communication: how external form, contact interface and an intended internal stack can be explained in one concise visual sequence. It is a visualization concept, not a validated medical device or a mechanical proof case.",
-    role: [
-      "I developed the visual direction and enclosure concept.",
-      "I modeled the product form and intended internal stack.",
-      "I created the material, lighting and render direction.",
-      "I planned the transition from assembled object to exploded view.",
-    ],
-    development: [
-      {
-        title: "Silhouette",
-        text: "The outer form is judged first as a compact wearable object before internal layers are introduced.",
-      },
-      {
-        title: "Contact zone",
-        text: "A softer interface is visually separated from the structural housing and electronics volume.",
-      },
-      {
-        title: "Exploded story",
-        text: "The assembly opens in a controlled order so each layer remains connected to its role in the concept.",
-      },
-    ],
-    details: [
-      { label: "Case type", value: "Visualization + motion" },
-      { label: "Primary output", value: "Renders + exploded sequence" },
-      { label: "Product status", value: "Concept" },
-      { label: "Emphasis", value: "Form, light, materials, story" },
-      { label: "Not claimed", value: "Medical or mechanical validation" },
-      { label: "Sequence", value: "26 s vertical product animation" },
-    ],
+    role: ["I developed the visual direction and enclosure concept."],
+    development: [],
+    details: [],
     result:
       "The work defines a concise visual language for a technically informed wearable concept without presenting it as a tested device.",
-    nextStep:
-      "Refine the lighting and pacing, then export a presentation-ready version with English captions.",
+    nextStep: "Refine lighting, pacing and the captioned presentation export.",
     evidence: {
       verified: ["Form study", "Material direction", "Exploded sequence"],
       next: ["Final render polish", "Captioned export"],
     },
-    visualLabel: "VISUALIZATION CONCEPT / MOTION PLAN",
-    visualRatio: "9:16 + 16:9 / FINAL MEDIA",
+    visualLabel: "VISUALIZATION CONCEPT / MOTION",
+    visualRatio: "00:26 / 9:16",
     processVideo: {
       src: publicPath("/media/eeg-wearable/eeg-device2.mp4"),
       poster: publicPath("/media/eeg-wearable/eeg-device2-poster.webp"),
@@ -316,54 +424,233 @@ export const projects: Project[] = [
   },
 ];
 
-export const featuredProjects = projects.filter(
-  (project) =>
-    project.key === "copet-pilot" ||
-    project.key === "smartmotion" ||
-    project.key === "eeg-wearable",
+export const featuredProjects = projects.filter((project) =>
+  ["copet-pilot", "smartmotion", "modular-system", "concussion-screening"].includes(
+    project.key,
+  ),
 );
 
+export const researchProjects: ResearchProject[] = [
+  {
+    key: "mri-segmentation",
+    number: "07",
+    title: "Medical Image Segmentation",
+    summary:
+      "A containerized MRI processing platform with queued jobs, service boundaries and a lesion-analysis cascade.",
+    metric: "11",
+    metricLabel: "service containers",
+    tools: ["FastAPI", "React", "PostgreSQL", "RabbitMQ", "Celery", "FastSurfer"],
+    image: {
+      src: publicPath("/media/research/mri-architecture.webp"),
+      alt: "Service architecture diagram for the medical image segmentation platform.",
+      width: 819,
+      height: 496,
+    },
+    href: "https://github.com/Godcomplexx/Medical-Image-Segmentation",
+  },
+  {
+    key: "eeg-seizure-prediction",
+    number: "08",
+    title: "EEG Seizure Prediction",
+    summary:
+      "A CNN–LSTM research pipeline for patient-independent EEG seizure prediction and transfer learning.",
+    metric: "86.5%",
+    metricLabel: "sensitivity on unseen patients",
+    tools: ["Python", "PyTorch", "CNN–LSTM", "EEG", "Transfer learning"],
+    image: {
+      src: publicPath("/media/research/seizure-confusion.webp"),
+      alt: "Confusion matrix from the EEG seizure prediction evaluation.",
+      width: 914,
+      height: 828,
+    },
+    href: "https://github.com/Godcomplexx/epilepsy",
+  },
+  {
+    key: "hybrid-eeg-speller",
+    number: "09",
+    title: "Hybrid EEG Speller",
+    summary:
+      "A P300 spelling interface that combines EEG selection with language-model assistance and timing analysis.",
+    metric: "06",
+    metricLabel: "participants in the study",
+    tools: ["P300", "EEG", "Python", "LLM assistance", "Experiment design"],
+    image: {
+      src: publicPath("/media/research/hybrid-eeg.webp"),
+      alt: "Metrics dashboard for the hybrid P300 and language-model EEG speller study.",
+      width: 1400,
+      height: 847,
+    },
+    href: "https://github.com/Godcomplexx/Hybrid-EEG-Speller-P300-LLM-",
+  },
+  {
+    key: "eeg-gcs-assessment",
+    number: "10",
+    title: "EEG Consciousness Assessment",
+    summary:
+      "An EEG feature-analysis study for three-class consciousness assessment against Glasgow Coma Scale labels.",
+    metric: "76.2%",
+    metricLabel: "best three-class accuracy",
+    tools: ["EEG", "Python", "Feature analysis", "GCS", "Classification"],
+    image: {
+      src: publicPath("/media/research/gcs-heatmap.webp"),
+      alt: "EEG feature correlation heatmap from the GCS consciousness assessment study.",
+      width: 1000,
+      height: 800,
+    },
+    href: "https://github.com/Godcomplexx/EEG-based-Consciousness-Assessment-GCS-",
+  },
+];
+
+export const visualStudies: VisualStudy[] = [
+  {
+    key: "eeg",
+    number: "05",
+    title: "Wearable EEG",
+    discipline: "PRODUCT MOTION / EXPLODED STORY",
+    description:
+      "A compact form, contact layer and intended electronics stack explained as one restrained vertical sequence.",
+    layout: "portrait",
+    video: projects.find((project) => project.key === "eeg-wearable")?.processVideo,
+  },
+  {
+    key: "handheld",
+    number: "06",
+    title: "Handheld Media Object",
+    discipline: "HARD-SURFACE / PRODUCT RENDER",
+    description:
+      "A stylized handheld device study focused on silhouette, controls, color blocking and presentation.",
+    layout: "square",
+    image: {
+      src: publicPath("/media/visual-lab/handheld.webp"),
+      alt: "Stylized handheld media player render with a circular screen and physical controls.",
+      width: 1400,
+      height: 1400,
+    },
+  },
+  {
+    key: "procedural-object",
+    number: "V01",
+    title: "Organic Interface Study",
+    discipline: "FORM / TRANSPARENCY / CONTRAST",
+    description:
+      "A transparent enclosure and organic elements used to test depth, overlap and visual tension.",
+    layout: "square",
+    image: {
+      src: publicPath("/media/visual-lab/procedural-object.webp"),
+      alt: "Transparent hard-surface object with dark organic tentacle-like forms passing through it.",
+      width: 1080,
+      height: 1080,
+    },
+  },
+  {
+    key: "glass",
+    number: "V02",
+    title: "Glass Material Study",
+    discipline: "MATERIAL / LIGHTING",
+    description:
+      "A controlled material study built around refraction, highlights and a restrained studio palette.",
+    layout: "square",
+    image: {
+      src: publicPath("/media/visual-lab/glass.webp"),
+      alt: "Abstract glass object rendered with blue and magenta studio lighting.",
+      width: 1400,
+      height: 1400,
+    },
+  },
+  {
+    key: "interior",
+    number: "V03",
+    title: "Atmospheric Interior",
+    discipline: "SPACE / LIGHT / COMPOSITION",
+    description:
+      "An environment study balancing a long perspective, warm practical light and a cool ambient field.",
+    layout: "wide",
+    image: {
+      src: publicPath("/media/visual-lab/interior.webp"),
+      alt: "Long atmospheric interior hallway rendered with warm wall lights and a cool window glow.",
+      width: 1600,
+      height: 905,
+    },
+  },
+  {
+    key: "vending",
+    number: "V04",
+    title: "Vending Island",
+    discipline: "ENVIRONMENT / PRODUCT VISUALIZATION",
+    description:
+      "A compact commercial island explored as both a designed object and a small architectural scene.",
+    layout: "square",
+    image: {
+      src: publicPath("/media/visual-lab/vending.webp"),
+      alt: "Isometric vending kiosk island rendered against a soft colored background.",
+      width: 1400,
+      height: 1400,
+    },
+  },
+];
+
+export const practiceMetrics = [
+  { value: "32", label: "native SolidWorks documents" },
+  { value: "02", label: "working embedded systems" },
+  { value: "04", label: "biomedical AI research cases" },
+] as const;
+
+export const toolGroups = [
+  {
+    title: "CAD + physical form",
+    tools: ["SolidWorks", "Plasticity", "Blender", "3D printing"],
+  },
+  {
+    title: "Embedded systems",
+    tools: ["ESP32", "ESP-IDF", "Zephyr", "C / C++", "BLE", "I²C"],
+  },
+  {
+    title: "Applied computation",
+    tools: ["Python", "PyTorch", "FastAPI", "Computer vision", "EEG / MRI"],
+  },
+  {
+    title: "Visual communication",
+    tools: ["Hard-surface modeling", "Materials", "Lighting", "Motion"],
+  },
+] as const;
+
 export const projectIndex: ProjectIndexEntry[] = [
-  ...projects.map((project) => ({
+  ...featuredProjects.map((project) => ({
     key: project.key,
     number: project.number,
     title: project.title,
     category: project.category,
     year: project.year,
     status: project.status,
-    href:
-      project.key === "copet-pilot" ||
-      project.key === "smartmotion" ||
-      project.key === "eeg-wearable"
-        ? `#project-${project.key}`
-        : undefined,
+    href: `#project-${project.key}`,
   })),
   {
-    key: "handheld-media",
+    key: "eeg-wearable",
     number: "05",
-    title: "Handheld Media Player",
-    category: "PRODUCT / MECHANICAL",
+    title: "Wearable EEG",
+    category: "VISUALIZATION / MOTION",
     year: "2026",
-    status: "Case in development",
+    status: "Concept film",
+    href: "#visual-lab-eeg",
   },
   {
-    key: "photogrammetry",
+    key: "handheld-media",
     number: "06",
-    title: "Photogrammetry Study",
-    category: "RECONSTRUCTION",
+    title: "Handheld Media Object",
+    category: "VISUALIZATION / MOTION",
     year: "2026",
-    status: "Capture in progress",
+    status: "Render study",
+    href: "#visual-lab-handheld",
   },
-  {
-    key: "eeg-seizure-prediction",
-    number: "07",
-    title: "EEG Seizure Prediction",
-    category: "APPLIED COMPUTATION",
+  ...researchProjects.map((project) => ({
+    key: project.key,
+    number: project.number,
+    title: project.title,
+    category: "APPLIED COMPUTATION" as const,
     year: "2026",
     status: "Research code",
-    href: "https://github.com/Godcomplexx/epilepsy",
-    external: true,
-  },
+    href: `#research-${project.key}`,
+  })),
 ];
 
 export const projectByKey = Object.fromEntries(

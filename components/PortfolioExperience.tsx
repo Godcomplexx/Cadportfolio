@@ -5,7 +5,15 @@ import { HeroTurntable } from "@/components/HeroTurntable";
 import { MusicPlayer } from "@/components/MusicPlayer";
 import { Scramble } from "@/components/Scramble";
 import { WorkIndex } from "@/components/WorkIndex";
-import { featuredProjects, projectIndex, type Project } from "@/lib/projects";
+import {
+  featuredProjects,
+  practiceMetrics,
+  projectIndex,
+  researchProjects,
+  toolGroups,
+  visualStudies,
+  type Project,
+} from "@/lib/projects";
 
 const cvUrl =
   "https://godcomplexx.github.io/portfolio/resume/daria_melnikova_resume_print.html";
@@ -95,15 +103,37 @@ function HudGlitch({ text }: { text: string }) {
 function ProjectSchematic({ project }: { project: Project }) {
   if (project.actualImage) {
     return (
-      <div className="project-visual project-visual--image">
-        {/* The source is already compressed and its cloudy background is part of the work. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={project.actualImage}
-          alt={project.actualImageAlt ?? project.title}
-          loading="lazy"
-          decoding="async"
-        />
+      <div
+        className={`project-visual project-visual--image ${
+          project.supportingImage ? "project-visual--paired" : ""
+        }`}
+      >
+        <div className="project-visual__image-cell">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={project.actualImage.src}
+            alt={project.actualImage.alt}
+            width={project.actualImage.width}
+            height={project.actualImage.height}
+            loading="lazy"
+            decoding="async"
+          />
+          {project.actualImage.label ? <span>{project.actualImage.label}</span> : null}
+        </div>
+        {project.supportingImage ? (
+          <div className="project-visual__image-cell project-visual__image-cell--supporting">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={project.supportingImage.src}
+              alt={project.supportingImage.alt}
+              width={project.supportingImage.width}
+              height={project.supportingImage.height}
+              loading="lazy"
+              decoding="async"
+            />
+            {project.supportingImage.label ? <span>{project.supportingImage.label}</span> : null}
+          </div>
+        ) : null}
         <span className="project-visual__scan" aria-hidden="true" />
         <span
           className="project-border-motion depth-5"
@@ -310,11 +340,132 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
       <span className="project-tile__label depth-5" data-depth="5" aria-hidden="true">
         {index === 0
           ? "FEATURED SYSTEM"
-          : project.status === "Concept"
-            ? "CONCEPT STUDY"
-            : "WORKING PROTOTYPE"}
+          : project.status === "Documented study"
+            ? "NATIVE CAD STUDY"
+            : project.status === "Functional prototype"
+              ? "FUNCTIONAL SYSTEM"
+              : project.status === "Concept"
+                ? "CONCEPT STUDY"
+                : "WORKING PROTOTYPE"}
       </span>
     </article>
+  );
+}
+
+function ResearchArchive() {
+  return (
+    <section className="research-section" id="research" aria-labelledby="research-title">
+      <header className="research-section__head">
+        <div>
+          <p className="section-kicker" data-reveal="line">Research / computation</p>
+          <h2 id="research-title" data-reveal="text">SYSTEMS BEYOND<br />THE OBJECT</h2>
+        </div>
+        <p data-reveal="line">
+          Biomedical signal, imaging and computer-vision work shown as compact evidence cards —
+          enough to understand the system, with source repositories for the full implementation.
+        </p>
+      </header>
+
+      <div className="research-grid">
+        {researchProjects.map((project) => (
+          <article
+            className="research-card"
+            id={`research-${project.key}`}
+            key={project.key}
+            data-reveal="block"
+          >
+            <a href={project.href} target="_blank" rel="noreferrer">
+              <div className="research-card__media">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={project.image.src}
+                  alt={project.image.alt}
+                  width={project.image.width}
+                  height={project.image.height}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <div className="research-card__body">
+                <p className="research-card__index">{project.number} / RESEARCH CODE</p>
+                <h3>{project.title}</h3>
+                <p>{project.summary}</p>
+                <div className="research-card__metric">
+                  <strong>{project.metric}</strong>
+                  <span>{project.metricLabel}</span>
+                </div>
+                <ul aria-label={`${project.title} tools`}>
+                  {project.tools.map((tool) => <li key={tool}>{tool}</li>)}
+                </ul>
+                <span className="research-card__link">Open repository ↗</span>
+              </div>
+            </a>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function VisualLab() {
+  return (
+    <section className="visual-lab" id="visual-lab" aria-labelledby="visual-lab-title">
+      <header className="visual-lab__head">
+        <div>
+          <p className="section-kicker" data-reveal="line">Visual lab / selected studies</p>
+          <h2 id="visual-lab-title" data-reveal="text">FORM, LIGHT<br />AND MOTION</h2>
+        </div>
+        <p data-reveal="line">
+          A separate visual track for Blender, hard-surface form, materials and product motion.
+          These studies support the engineering work without pretending to be validated products.
+        </p>
+      </header>
+
+      <div className="visual-lab__grid">
+        {visualStudies.map((study) => {
+          const descriptionId = `visual-lab-description-${study.key}`;
+          return (
+            <article
+              className={`visual-study visual-study--${study.layout}`}
+              id={`visual-lab-${study.key}`}
+              key={study.key}
+              data-reveal="block"
+            >
+              <div className="visual-study__media">
+                {study.video ? (
+                  <video
+                    controls
+                    playsInline
+                    preload="none"
+                    poster={study.video.poster}
+                    aria-label={`${study.title} concept video`}
+                    aria-describedby={descriptionId}
+                  >
+                    <source src={study.video.src} type="video/mp4" />
+                    Your browser does not support embedded video.
+                  </video>
+                ) : study.image ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={study.image.src}
+                    alt={study.image.alt}
+                    width={study.image.width}
+                    height={study.image.height}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : null}
+              </div>
+              <div className="visual-study__copy">
+                <p>{study.number} / {study.discipline}</p>
+                <h3>{study.title}</h3>
+                <small id={descriptionId}>{study.description}</small>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -545,6 +696,7 @@ export function PortfolioExperience() {
       <div className="fog-bridge" aria-hidden="true" />
 
       <WorkIndex projects={projectIndex} />
+      <div className="section-transition" aria-hidden="true" />
 
       <section className="work-section" id="featured-work" aria-labelledby="work-title">
         <header className="scene work-intro">
@@ -556,11 +708,12 @@ export function PortfolioExperience() {
           <div className="work-intro__copy depth-4" data-depth="4">
             <p className="section-kicker" data-reveal="line">Selected systems / 2025—2026</p>
             <h2 id="work-title" data-reveal="text">SELECTED<br />WORK</h2>
-            <p data-reveal="line">Two working systems and one visualization concept — shown through builds, behavior and process.</p>
+            <p data-reveal="line">Four selected systems — embedded prototypes, native SolidWorks evidence and an applied computer-vision device.</p>
           </div>
           <p className="work-intro__note depth-5" data-depth="5" aria-hidden="true">FORM / SIGNAL / PROOF</p>
         </header>
 
+        <div className="section-transition" aria-hidden="true" />
         <div className="project-gallery">
           {featuredProjects.map((project, index) => (
             <ProjectTile project={project} index={index} key={project.key} />
@@ -568,6 +721,13 @@ export function PortfolioExperience() {
         </div>
       </section>
 
+      <div className="section-transition" aria-hidden="true" />
+      <ResearchArchive />
+
+      <div className="section-transition" aria-hidden="true" />
+      <VisualLab />
+
+      <div className="section-transition" aria-hidden="true" />
       <section className="scene signal-section" aria-labelledby="signal-title">
         <div className="signal-section__void depth-0" data-depth="0" aria-hidden="true" />
         <div className="signal-section__glow depth-1" data-depth="1" aria-hidden="true" />
@@ -583,6 +743,7 @@ export function PortfolioExperience() {
         <div className="signal-section__reticle depth-5" data-depth="5" aria-hidden="true"><span /><i /></div>
       </section>
 
+      <div className="section-transition" aria-hidden="true" />
       <section className="scene about-section" id="about" aria-labelledby="about-title">
         <div className="about-section__field depth-0" data-depth="0" aria-hidden="true" />
         <div className="about-section__halo depth-1" data-depth="1" aria-hidden="true" />
@@ -593,8 +754,20 @@ export function PortfolioExperience() {
           <h2 id="about-title" data-reveal="text">
             FORM + SIGNAL<br />IN ONE PRACTICE
           </h2>
-          <p data-reveal="line">I handle the visible object and the technical process behind it.</p>
+          <p data-reveal="line">
+            I work across CAD, electronics, visual communication and applied AI — connecting
+            the visible object to the system that makes it useful.
+          </p>
         </div>
+
+        <dl className="about-metrics depth-4" data-depth="4" aria-label="Portfolio evidence">
+          {practiceMetrics.map((metric) => (
+            <div data-reveal="block" key={metric.label}>
+              <dt>{metric.value}</dt>
+              <dd>{metric.label}</dd>
+            </div>
+          ))}
+        </dl>
 
         <div className="discipline-grid depth-3" data-depth="3">
           {disciplines.map((discipline) => (
@@ -604,6 +777,17 @@ export function PortfolioExperience() {
               <h3>{discipline.title}</h3>
               <small>{discipline.text}</small>
             </article>
+          ))}
+        </div>
+
+        <div className="tool-groups depth-4" data-depth="4">
+          {toolGroups.map((group) => (
+            <section data-reveal="block" key={group.title} aria-label={group.title}>
+              <h3>{group.title}</h3>
+              <ul>
+                {group.tools.map((tool) => <li key={tool}>{tool}</li>)}
+              </ul>
+            </section>
           ))}
         </div>
 
@@ -618,6 +802,7 @@ export function PortfolioExperience() {
         </ol>
       </section>
 
+      <div className="section-transition" aria-hidden="true" />
       <section className="scene contact-section" id="contact" aria-labelledby="contact-title">
         <div className="contact-section__field depth-0" data-depth="0" aria-hidden="true" />
         <div className="contact-section__orb depth-1" data-depth="1" aria-hidden="true" />

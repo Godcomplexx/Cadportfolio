@@ -116,6 +116,10 @@ canvas {
   min-width: 0;
 }
 
+.system-portfolio {
+  background: var(--night);
+}
+
 .skip-link {
   position: fixed;
   top: 0.75rem;
@@ -141,7 +145,8 @@ canvas {
 
 .scene,
 .project-tile,
-.fog-bridge {
+.fog-bridge,
+.section-transition {
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -262,7 +267,7 @@ canvas {
   display: grid;
   place-items: center;
   background: var(--night);
-  transition: opacity 250ms ease;
+  transition: opacity 160ms ease;
 }
 
 .site-loader--out {
@@ -281,8 +286,7 @@ canvas {
   display: block;
   height: 100%;
   background: var(--paper);
-  /* Spec: width eases over 520ms. */
-  transition: width 520ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: width 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Pixellated radial reveal: the page opens from the centre and the mask edge
@@ -299,7 +303,7 @@ canvas {
   mask-size: 100% 100%, 7px 7px;
   -webkit-mask-composite: source-in;
   mask-composite: intersect;
-  transition: --reveal 800ms cubic-bezier(0.33, 1, 0.68, 1);
+  transition: --reveal 300ms cubic-bezier(0.33, 1, 0.68, 1);
 }
 
 @property --reveal {
@@ -992,6 +996,11 @@ canvas {
   border-left-color: rgba(196, 216, 255, 0.42);
 }
 
+/* The control is far outside the viewport once the content rail is active. */
+.system-portfolio--content .system-hero__scroll > span:last-child {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .system-hero__scroll > span:last-child {
     animation: none;
@@ -1031,17 +1040,25 @@ canvas {
   background: var(--night);
 }
 
+/* Neutral breathing room between visual chapters. Decorative fields fade to
+   this shared tone instead of meeting each other at a hard section edge. */
+.section-transition {
+  z-index: 3;
+  height: clamp(4rem, 12vh, 9rem);
+  background: var(--night);
+}
+
 /* WORK INDEX */
 .work-section {
   position: relative;
   z-index: 3;
   color: var(--paper);
-  background: var(--night);
+  background: transparent;
 }
 
 .work-intro {
   min-height: 100svh;
-  background: var(--night);
+  background: transparent;
 }
 
 .work-intro__field {
@@ -1049,7 +1066,9 @@ canvas {
   inset: 0;
   background:
     radial-gradient(circle at 77% 20%, rgba(44, 78, 222, 0.34), transparent 31%),
-    linear-gradient(145deg, #02040b 0%, #06113a 100%);
+    linear-gradient(145deg, rgba(2, 4, 11, 0.82), rgba(6, 17, 58, 0.9));
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
 }
 
 .work-intro__glow {
@@ -1131,9 +1150,9 @@ canvas {
 .project-gallery {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 1px;
-  padding: 1px var(--pad) clamp(8rem, 14vw, 14rem);
-  background: var(--line);
+  gap: 0;
+  padding: 0 var(--pad) clamp(8rem, 14vw, 14rem);
+  background: transparent;
 }
 
 .project-tile {
@@ -1143,8 +1162,12 @@ canvas {
   /* Keeps the project meta clear of the fixed navigation rail. */
   padding-top: 3.2rem;
   color: var(--paper);
-  background: #050a19;
+  background: transparent;
   border: 0;
+}
+
+.project-tile + .project-tile {
+  border-top: 1px solid var(--line);
 }
 
 .project-tile--featured {
@@ -1175,9 +1198,10 @@ canvas {
   background:
     linear-gradient(rgba(130, 166, 255, 0.055) 1px, transparent 1px),
     linear-gradient(90deg, rgba(130, 166, 255, 0.055) 1px, transparent 1px),
-    radial-gradient(circle at 50% 10%, color-mix(in srgb, var(--project-accent) 19%, transparent), transparent 46%),
-    #050a19;
-  background-size: 4.5rem 4.5rem, 4.5rem 4.5rem, auto, auto;
+    radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--project-accent) 19%, transparent), transparent 46%);
+  background-size: 4.5rem 4.5rem, 4.5rem 4.5rem, auto;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
 }
 
 .project-tile__halo {
@@ -1248,11 +1272,50 @@ canvas {
 }
 
 .project-visual--image img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   filter: saturate(0.78) contrast(1.08);
   transition: filter 400ms ease, transform 700ms cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+
+.project-visual__image-cell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.project-visual__image-cell > span {
+  position: absolute;
+  right: 0.7rem;
+  bottom: 0.7rem;
+  z-index: 2;
+  padding: 0.38rem 0.48rem;
+  color: rgba(241, 246, 255, 0.84);
+  background: rgba(2, 5, 16, 0.78);
+  border: 1px solid rgba(196, 217, 255, 0.18);
+  font: 400 0.46rem/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.project-visual--paired {
+  display: grid;
+  grid-template-rows: minmax(0, 1.42fr) minmax(0, 0.58fr);
+  gap: 1px;
+  background: var(--line);
+}
+
+.project-visual--paired .project-visual__image-cell {
+  background: #050915;
+}
+
+.project-visual--paired .project-visual__image-cell--supporting img {
+  object-fit: contain;
+  background: #e9e9e2;
 }
 
 .project-tile:hover .project-visual--image img {
@@ -1837,18 +1900,250 @@ canvas {
   letter-spacing: 0.07em;
 }
 
+/* RESEARCH ARCHIVE — compact evidence rather than four more full-screen cases. */
+.research-section,
+.visual-lab {
+  position: relative;
+  z-index: 3;
+  padding: clamp(7rem, 11vw, 12rem) var(--pad);
+  color: var(--paper);
+  background: transparent;
+}
+
+.research-section__head,
+.visual-lab__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
+  gap: clamp(2rem, 7vw, 8rem);
+  align-items: end;
+  margin-bottom: clamp(4rem, 7vw, 7rem);
+}
+
+.research-section__head h2,
+.visual-lab__head h2 {
+  margin: 0;
+  font: 900 clamp(3.8rem, 8.7vw, 10.5rem)/0.78 var(--display);
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+.research-section__head > p,
+.visual-lab__head > p {
+  margin: 0 0 0.35rem;
+  color: var(--muted);
+  font: 400 clamp(0.67rem, 0.78vw, 0.84rem)/1.65 var(--mono);
+}
+
+.research-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+}
+
+.research-card {
+  min-width: 0;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: rgba(4, 8, 23, 0.36);
+}
+
+.research-card > a {
+  display: grid;
+  grid-template-rows: minmax(15rem, 31vw) auto;
+  height: 100%;
+}
+
+.research-card__media {
+  display: grid;
+  min-height: 0;
+  overflow: hidden;
+  place-items: center;
+  background: #e9ebef;
+}
+
+.research-card__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: saturate(0.66) contrast(1.02);
+  transition: filter 300ms ease, transform 600ms cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+
+.research-card__body {
+  display: flex;
+  min-height: 27rem;
+  padding: clamp(1.3rem, 2.4vw, 2.5rem);
+  flex-direction: column;
+}
+
+.research-card__index,
+.visual-study__copy > p {
+  margin: 0;
+  color: var(--cyan);
+  font: 400 0.5rem/1.35 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.research-card h3,
+.visual-study h3 {
+  margin: 1.6rem 0 1rem;
+  font: 400 clamp(1.8rem, 3.2vw, 4rem)/0.95 var(--display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.research-card__body > p:not(.research-card__index) {
+  max-width: 42rem;
+  margin: 0;
+  color: rgba(239, 244, 255, 0.61);
+  font: 400 clamp(0.62rem, 0.7vw, 0.76rem)/1.65 var(--mono);
+}
+
+.research-card__metric {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  margin: 2.1rem 0 1.8rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--line);
+}
+
+.research-card__metric strong {
+  color: var(--lime);
+  font: 400 clamp(2.5rem, 4.8vw, 5.8rem)/0.75 var(--display);
+  letter-spacing: 0.04em;
+}
+
+.research-card__metric span {
+  max-width: 12rem;
+  color: var(--muted);
+  font: 400 0.54rem/1.4 var(--mono);
+  text-transform: uppercase;
+}
+
+.research-card ul,
+.tool-groups ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: auto 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.research-card li,
+.tool-groups li {
+  padding: 0.42rem 0.5rem;
+  color: rgba(239, 244, 255, 0.63);
+  border: 1px solid var(--line);
+  font: 400 0.5rem/1 var(--mono);
+}
+
+.research-card__link {
+  align-self: flex-start;
+  margin-top: 1.5rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--cyan);
+  font: 600 0.55rem/1 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* VISUAL LAB — dense gallery, with the EEG film kept well below the core work. */
+.visual-lab__grid {
+  display: grid;
+  grid-auto-flow: dense;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 1px;
+  padding: 1px;
+  background: var(--line);
+}
+
+.visual-study {
+  display: grid;
+  min-width: 0;
+  grid-column: span 4;
+  grid-template-rows: minmax(24rem, 36vw) auto;
+  background: var(--night);
+}
+
+.visual-study--portrait {
+  grid-row: span 2;
+  grid-template-rows: minmax(48rem, 74vw) auto;
+}
+
+.visual-study--wide {
+  grid-column: span 8;
+  grid-template-rows: minmax(24rem, 36vw) auto;
+}
+
+.visual-study__media {
+  min-height: 0;
+  overflow: hidden;
+  background: #050815;
+}
+
+.visual-study__media img,
+.visual-study__media video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #050815;
+}
+
+.visual-study__media img {
+  filter: saturate(0.82) contrast(1.03);
+  transition: filter 300ms ease, transform 650ms cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+
+.visual-study--portrait .visual-study__media video {
+  object-fit: contain;
+}
+
+.visual-study__copy {
+  min-height: 13rem;
+  padding: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.visual-study h3 {
+  margin: 2.5rem 0 0.8rem;
+  font-size: clamp(1.35rem, 2.25vw, 2.8rem);
+}
+
+.visual-study small {
+  display: block;
+  max-width: 32rem;
+  color: var(--muted);
+  font: 400 0.59rem/1.55 var(--mono);
+}
+
+@media (hover: hover) {
+  .research-card > a:hover .research-card__media img,
+  .research-card > a:focus-visible .research-card__media img,
+  .visual-study:hover .visual-study__media img {
+    filter: saturate(1) contrast(1);
+    transform: scale(1.018);
+  }
+}
+
 /* STARBURST MANIFESTO */
 .signal-section {
   min-height: 126svh;
-  background: #010103;
+  background: transparent;
 }
 
 .signal-section__void {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 50% 49%, rgba(20, 26, 63, 0) 0 8%, rgba(0, 0, 0, 0.72) 52%, #000 78%),
-    #010103;
+    radial-gradient(circle at 50% 49%, rgba(20, 26, 63, 0) 0 8%, rgba(0, 0, 0, 0.72) 52%, #000 78%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
 }
 
 .signal-section__glow {
@@ -1944,7 +2239,7 @@ canvas {
 .about-section {
   min-height: 150svh;
   padding: clamp(8rem, 14vw, 14rem) var(--pad) 10rem;
-  background: var(--blue-deep);
+  background: transparent;
 }
 
 .about-section__field {
@@ -1953,7 +2248,9 @@ canvas {
   z-index: 0;
   background:
     radial-gradient(circle at 82% 14%, rgba(48, 95, 255, 0.6), transparent 30%),
-    linear-gradient(145deg, #07123f, #0d2b9d 58%, #07123f);
+    linear-gradient(145deg, rgba(7, 18, 63, 0.9), rgba(13, 43, 157, 0.92) 58%, rgba(7, 18, 63, 0.9));
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
 }
 
 .about-section__field::after {
@@ -2008,6 +2305,38 @@ canvas {
   font: 400 clamp(0.7rem, 0.84vw, 0.9rem)/1.6 var(--mono);
 }
 
+.about-metrics {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: clamp(5rem, 8vw, 9rem) 0 0;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+}
+
+.about-metrics > div {
+  min-height: 12rem;
+  padding: 1.2rem;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.about-metrics dt {
+  color: var(--lime);
+  font: 400 clamp(3.8rem, 7vw, 8.5rem)/0.8 var(--display);
+  letter-spacing: 0.04em;
+}
+
+.about-metrics dd {
+  max-width: 13rem;
+  margin: 1.5rem 0 0;
+  color: var(--muted);
+  font: 400 0.58rem/1.45 var(--mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
 .discipline-grid {
   position: relative;
   z-index: 3;
@@ -2051,6 +2380,35 @@ canvas {
   font: 400 0.65rem/1.45 var(--mono);
 }
 
+.tool-groups {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: clamp(3rem, 5vw, 5rem);
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+}
+
+.tool-groups > section {
+  min-height: 10rem;
+  padding: 1.2rem;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.tool-groups h3 {
+  margin: 0 0 2.5rem;
+  color: rgba(239, 244, 255, 0.88);
+  font: 400 clamp(1.15rem, 1.7vw, 2rem)/1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tool-groups ul {
+  margin-top: 0;
+}
+
 .process-strip {
   position: relative;
   z-index: 4;
@@ -2079,7 +2437,7 @@ canvas {
 /* CONTACT */
 .contact-section {
   min-height: 110svh;
-  background: var(--night);
+  background: transparent;
 }
 
 .contact-section__field {
@@ -2088,7 +2446,9 @@ canvas {
   background:
     radial-gradient(circle at 78% 31%, rgba(67, 238, 255, 0.2), transparent 27%),
     radial-gradient(circle at 21% 72%, rgba(169, 255, 52, 0.11), transparent 25%),
-    linear-gradient(135deg, #02040b 0%, #071646 67%, #02040b 100%);
+    linear-gradient(135deg, rgba(2, 4, 11, 0.88), rgba(7, 22, 70, 0.92) 67%, rgba(2, 4, 11, 0.88));
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
 }
 
 .contact-section__orb {
@@ -2102,6 +2462,8 @@ canvas {
   border-radius: 50%;
   background: repeating-conic-gradient(from 0deg, rgba(111, 237, 255, 0.08) 0 1deg, transparent 1deg 5deg);
   box-shadow: inset 0 0 130px rgba(56, 101, 255, 0.13), 0 0 100px rgba(70, 214, 255, 0.09);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 22%);
+  mask-image: linear-gradient(to bottom, transparent, #000 22%);
 }
 
 .contact-section__dm {
@@ -2211,6 +2573,9 @@ canvas {
 }
 
 @supports (content-visibility: auto) {
+  .research-section,
+  .visual-lab,
+  .signal-section,
   .about-section,
   .contact-section {
     content-visibility: auto;
@@ -2221,6 +2586,26 @@ canvas {
 @media (max-width: 1050px) {
   .project-tile {
     grid-template-columns: minmax(0, 1.1fr) minmax(17rem, 0.9fr);
+  }
+
+  .research-section__head,
+  .visual-lab__head {
+    grid-template-columns: 1fr;
+  }
+
+  .research-section__head > p,
+  .visual-lab__head > p {
+    width: min(100%, 34rem);
+    margin-left: auto;
+  }
+
+  .visual-study,
+  .visual-study--portrait {
+    grid-column: span 6;
+  }
+
+  .visual-study--wide {
+    grid-column: span 12;
   }
 
   .discipline-grid {
@@ -2240,14 +2625,22 @@ canvas {
   }
 
   .site-rail__links {
+    position: absolute;
+    top: 0.85rem;
+    right: 0.65rem;
     gap: 0.15rem;
-    margin-right: 0;
-    font-size: 1rem;
+    margin: 0;
+    font-size: 0.72rem;
   }
 
   .site-rail__links a:nth-child(2),
-  .site-rail__links a:nth-child(3) {
+  .site-rail__links a:last-child {
     display: none;
+  }
+
+  .site-rail__links a {
+    min-height: 2rem;
+    padding: 0.4rem 0.32rem;
   }
 
   .site-hud {
@@ -2329,14 +2722,14 @@ canvas {
 
   .project-gallery {
     display: block;
-    padding: 1px 1rem 7rem;
+    padding: 0 1rem 7rem;
     background: transparent;
   }
 
   .project-tile {
     display: block;
     min-height: 0;
-    margin-bottom: 1px;
+    margin-bottom: 0;
   }
 
   .project-tile__visual {
@@ -2381,6 +2774,58 @@ canvas {
   .schematic-callout strong { font-size: 0.47rem; }
   .schematic-callout small { font-size: 0.42rem; }
   .schematic-object { width: 48%; }
+
+  .research-section,
+  .visual-lab {
+    padding: 7rem 1rem;
+  }
+
+  .research-section__head h2,
+  .visual-lab__head h2 {
+    font-size: clamp(3.7rem, 16vw, 6rem);
+  }
+
+  .research-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .research-card > a {
+    grid-template-rows: minmax(15rem, 68vw) auto;
+  }
+
+  .research-card__body {
+    min-height: 25rem;
+  }
+
+  .visual-lab__grid {
+    display: block;
+    padding: 0;
+    background: transparent;
+  }
+
+  .visual-study,
+  .visual-study--portrait,
+  .visual-study--wide {
+    grid-template-rows: minmax(24rem, 112vw) auto;
+    margin-bottom: 1px;
+    border: 1px solid var(--line);
+  }
+
+  .visual-study--wide {
+    grid-template-rows: minmax(16rem, 64vw) auto;
+  }
+
+  .about-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .about-metrics > div {
+    min-height: 9rem;
+  }
+
+  .tool-groups {
+    grid-template-columns: 1fr;
+  }
 
   .signal-section {
     min-height: 105svh;
@@ -2516,7 +2961,8 @@ canvas {
 }
 
 .perf-lite .project-tile__halo,
-.perf-lite .system-hero__glow span {
+.perf-lite .system-hero__glow span,
+.perf-lite .signal-section__glow {
   filter: blur(26px);
 }
 
@@ -2597,7 +3043,7 @@ canvas {
   /* Clears the fixed navigation rail. */
   padding-top: clamp(7rem, 11vw, 12rem);
   padding-bottom: clamp(8rem, 13vw, 14rem);
-  background: var(--night);
+  background: transparent;
 }
 
 .work-index > * {
