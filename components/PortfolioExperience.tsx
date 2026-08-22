@@ -93,11 +93,18 @@ function HudGlitch({ text }: { text: string }) {
 
 function ProjectSchematic({ project }: { project: Project }) {
   if (project.actualImage) {
+    const mediaStyle = project.supportingImage
+      ? undefined
+      : ({
+          "--project-media-ratio": `${project.actualImage.width} / ${project.actualImage.height}`,
+        } as StyleVariables);
+
     return (
       <div
         className={`project-visual project-visual--image ${
           project.supportingImage ? "project-visual--paired" : ""
         }`}
+        style={mediaStyle}
       >
         <div className="project-visual__image-cell">
           {/* eslint-disable-next-line @next/next/no-img-element */}
