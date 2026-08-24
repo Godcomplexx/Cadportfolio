@@ -2950,6 +2950,53 @@ canvas {
   background: rgba(18, 61, 163, 0.6);
 }
 
+/* Sound toggle. Matches the transport button, but stays quieter until the mix
+   is muted — at which point it is the one control that matters. */
+.music-rail__sound {
+  display: grid;
+  flex: none;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  border: 1px solid rgba(157, 201, 255, 0.5);
+  border-radius: 0;
+  color: #d9efff;
+  background: rgba(10, 47, 149, 0.34);
+  cursor: pointer;
+  place-items: center;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.music-rail__sound:hover:not(:disabled) {
+  border-color: #ffe23d;
+  color: #ffe23d;
+  background: rgba(18, 61, 163, 0.6);
+}
+
+/* Silent mix: draw attention, since sound is one press away. */
+.music-rail__sound--muted {
+  border-color: rgba(255, 226, 61, 0.75);
+  color: #ffe23d;
+}
+
+.music-rail__sound:focus-visible {
+  outline: 2px solid #ffe23d;
+  outline-offset: 2px;
+}
+
+.music-rail__sound .pixel-icon path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: square;
+}
+
+/* The speaker cone reads as a solid shape; only the waves stay as strokes. */
+.music-rail__sound .pixel-icon path:first-child {
+  fill: currentColor;
+  stroke: none;
+}
+
 .music-rail__play:disabled {
   cursor: progress;
   opacity: 0.55;

@@ -25,6 +25,9 @@ type YouTubePlayer = {
   playVideo(): void;
   seekTo(seconds: number, allowSeekAhead: boolean): void;
   setVolume(volume: number): void;
+  mute(): void;
+  unMute(): void;
+  isMuted(): boolean;
 };
 
 type YouTubePlayerEvent = { target: YouTubePlayer };
@@ -40,6 +43,7 @@ type YouTubeNamespace = {
         onReady(event: YouTubePlayerEvent): void;
         onStateChange(event: YouTubeStateEvent): void;
         onError(event: YouTubeStateEvent): void;
+        onAutoplayBlocked?(event: YouTubePlayerEvent): void;
       };
     },
   ) => YouTubePlayer;
@@ -152,13 +156,36 @@ export function MusicPlayer() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [failed, setFailed] = useState(false);
-  const [playerRequested, setPlayerRequested] = useState(false);
+  /**
+   * The mix should be playing by the time the visitor has taken the page in, so
+   * the player is requested from the first render rather than waiting for the
+   * Play button. Autoplay with sound is still refused by browsers unless the
+   * visitor has history with the site; `autoplayBlocked` handles that case.
+   */
+  const [playerRequested, setPlayerRequested] = useState(true);
+  /** Set when the browser refuses the autoplay attempt made on mount. */
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  /**
+   * The mix starts muted, because that is the only form of autoplay browsers
+   * permit without a user gesture. The first click anywhere unmutes it, by
+   * which point the track is already running rather than starting from zero.
+   */
+  const [muted, setMuted] = useState(true);
 
   const hostRef = useRef<HTMLDivElement>(null);
   // Written to directly each frame, bypassing React for the moving fill.
   const progressRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YouTubePlayer | null>(null);
-  const pendingPlayRef = useRef(false);
+  // Armed from the start so the autoplay attempt fires as soon as the player
+  // reports ready, without waiting for a press.
+  const pendingPlayRef = useRef(true);
+  /** Set once a click has started the mix, so it is never re-armed after that. */
+  const gestureSpentRef = useRef(false);
+  /**
+   * Live playback state for listeners that are attached once and would
+   * otherwise close over a stale `playing` value.
+   */
+  const playerStateRef = useRef<"playing" | "stopped">("stopped");
   const eqRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
@@ -230,7 +257,10 @@ export function MusicPlayer() {
         const player = new YT.Player(mount, {
           videoId: YOUTUBE_MIX_ID,
           playerVars: {
-            autoplay: 0,
+            // Muted autoplay is the one form browsers allow without a gesture,
+            // so the mix is already running by the time the visitor clicks.
+            autoplay: 1,
+            mute: 1,
             controls: 0,
             disablekb: 1,
             fs: 0,
@@ -246,7 +276,10 @@ export function MusicPlayer() {
               setReady(true);
               setFailed(false);
               setDuration(total);
+              // Volume is set up front so unmuting later is instant; the mute
+              // flag, not the volume, is what keeps the opening silent.
               event.target.setVolume(70);
+              event.target.mute();
               if (pendingPlayRef.current) {
                 pendingPlayRef.current = false;
                 event.target.playVideo();
@@ -255,6 +288,7 @@ export function MusicPlayer() {
             onStateChange: (event) => {
               if (disposed) return;
               playerIsPlaying = event.data === YT.PlayerState.PLAYING;
+              playerStateRef.current = playerIsPlaying ? "playing" : "stopped";
               setPlaying(playerIsPlaying);
               const total = event.target.getDuration();
               if (total > 0) setDuration(total);
@@ -269,6 +303,12 @@ export function MusicPlayer() {
             },
             onError: () => {
               if (!disposed) setFailed(true);
+            },
+            // Chrome does not reliably deliver this event, so it is treated as
+            // a bonus signal only — the readiness check below is what actually
+            // arms the click fallback.
+            onAutoplayBlocked: () => {
+              if (!disposed) setAutoplayBlocked(true);
             },
           },
         });
@@ -353,6 +393,68 @@ export function MusicPlayer() {
     else player.playVideo();
   }, [playing]);
 
+  const toggleMuted = useCallback(() => {
+    const player = playerRef.current;
+    if (!player) return;
+
+    if (muted) {
+      player.unMute();
+      player.setVolume(70);
+      // Pressing this is itself the gesture, so the page-wide listener has
+      // nothing left to do.
+      gestureSpentRef.current = true;
+      setMuted(false);
+      // Muted autoplay can be refused too; this press is a chance to start.
+      if (playerStateRef.current !== "playing") player.playVideo();
+    } else {
+      player.mute();
+      setMuted(true);
+    }
+  }, [muted]);
+
+  // Note whether even the muted autoplay was refused. `onAutoplayBlocked` is not
+  // delivered dependably, so the player's own state shortly after it reports
+  // ready is used instead: still not playing means it was refused.
+  useEffect(() => {
+    if (!ready || playing || autoplayBlocked || gestureSpentRef.current) return;
+    const timer = window.setTimeout(() => setAutoplayBlocked(true), 1200);
+    return () => window.clearTimeout(timer);
+  }, [ready, playing, autoplayBlocked]);
+
+  // The first click anywhere is the user gesture that lets audio through, so it
+  // unmutes the mix that has been running silently since arrival. If even the
+  // muted autoplay was refused, the same click starts playback outright.
+  useEffect(() => {
+    if (gestureSpentRef.current) return;
+
+    const onFirstGesture = (event: globalThis.MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      // The player's own controls and any link already do their own thing.
+      if (target.closest(".music-rail") || target.closest("a")) return;
+
+      const player = playerRef.current;
+      if (!player) return;
+
+      player.unMute();
+      player.setVolume(70);
+      // Whether the mix is already running is read from the player rather than
+      // from `playing`: this listener is attached once, so a captured value
+      // would be stale by the time the visitor clicks, and calling playVideo on
+      // an already-playing mix toggles it off.
+      if (playerStateRef.current !== "playing") player.playVideo();
+
+      // One shot only: past this point the transport owns playback, so a later
+      // click cannot unmute or restart what the visitor deliberately silenced.
+      gestureSpentRef.current = true;
+      setMuted(false);
+      setAutoplayBlocked(false);
+    };
+
+    document.addEventListener("click", onFirstGesture);
+    return () => document.removeEventListener("click", onFirstGesture);
+  }, []);
+
   const scrub = useCallback(
     (event: MouseEvent<HTMLDivElement>) => {
       const player = playerRef.current;
@@ -388,6 +490,29 @@ export function MusicPlayer() {
           <PixelIcon name="stop"><path d="M7 7h18v18H7z" /></PixelIcon>
         ) : (
           <PixelIcon name="play"><path d="m8 5 20 11L8 27z" /></PixelIcon>
+        )}
+      </button>
+
+      {/* The mix opens muted, so this states that plainly and gives a direct way
+          to turn sound on for anyone who does not just click the page. */}
+      <button
+        className={`music-rail__sound${muted ? " music-rail__sound--muted" : ""}`}
+        type="button"
+        onClick={toggleMuted}
+        disabled={loading}
+        aria-label={muted ? "Turn sound on" : "Mute mix"}
+        aria-pressed={muted}
+      >
+        {muted ? (
+          <PixelIcon name="muted">
+            <path d="M6 12h5l6-5v18l-6-5H6z" />
+            <path d="m21 12 6 8M27 12l-6 8" />
+          </PixelIcon>
+        ) : (
+          <PixelIcon name="sound">
+            <path d="M6 12h5l6-5v18l-6-5H6z" />
+            <path d="M21 11a7 7 0 0 1 0 10M24 8a11 11 0 0 1 0 16" />
+          </PixelIcon>
         )}
       </button>
 
