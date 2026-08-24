@@ -56,6 +56,11 @@ export type Project = {
   visualRatio: string;
   actualImage?: ProjectImage;
   supportingImage?: ProjectImage;
+  /**
+   * A set of images shown as one advancing frame instead of a static pair.
+   * Takes precedence over actualImage / supportingImage when present.
+   */
+  carousel?: ProjectImage[];
   processVideo?: ProjectVideo;
   source?: { label: string; href: string };
   tone: "coral" | "blue" | "sage" | "violet";
@@ -288,6 +293,30 @@ export const projects: Project[] = [
       height: 900,
       label: "Drawing / SLDDRW",
     },
+    // Captured from the native SolidWorks documents in the study archive.
+    carousel: [
+      {
+        src: publicPath("/media/solidworks/assembly-housing.webp"),
+        alt: "SolidWorks assembly of a rounded gearbox housing with a bolted cover, two bores and mounting feet.",
+        width: 1600,
+        height: 852,
+        label: "Housing assembly / SLDASM",
+      },
+      {
+        src: publicPath("/media/solidworks/assembly-stand.webp"),
+        alt: "SolidWorks assembly of a stand: a circular flanged base, two angled columns and a top bracket plate.",
+        width: 1600,
+        height: 852,
+        label: "Stand assembly / SLDASM",
+      },
+      {
+        src: publicPath("/media/solidworks/drawing-pipe.webp"),
+        alt: "SolidWorks A4 drawing sheet of a pipe fitting with a sectioned view, toleranced diameters and two 2:1 detail views.",
+        width: 651,
+        height: 922,
+        label: "Pipe drawing / SLDDRW",
+      },
+    ],
     tone: "sage",
   },
   {

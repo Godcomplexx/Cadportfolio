@@ -96,7 +96,130 @@ function HudGlitch({ text }: { text: string }) {
   );
 }
 
+/** How long each carousel slide is held before advancing, in milliseconds. */
+const CAROUSEL_INTERVAL_MS = 3200;
+
+function ProjectCarousel({ project }: { project: Project }) {
+  const slides = project.carousel ?? [];
+  const [index, setIndex] = useState(0);
+  // Paused while the visitor is interacting, so a slide cannot slip away from
+  // under the cursor mid-read.
+  const [paused, setPaused] = useState(false);
+
+  const go = (next: number) => setIndex((next + slides.length) % slides.length);
+
+  useEffect(() => {
+    if (paused || slides.length < 2) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const timer = window.setTimeout(
+      () => setIndex((value) => (value + 1) % slides.length),
+      CAROUSEL_INTERVAL_MS,
+    );
+    return () => window.clearTimeout(timer);
+    // `index` is a dependency so the hold restarts after a manual jump.
+  }, [index, paused, slides.length]);
+
+  if (!slides.length) return null;
+  const active = slides[index];
+  // The frame keeps one ratio for every slide: sizing it per-slide would make
+  // the whole case reflow each time a portrait drawing follows a landscape
+  // assembly. The widest slide wins, and narrower ones letterbox inside it.
+  const frameRatio = slides.reduce((widest, slide) =>
+    slide.width / slide.height > widest.width / widest.height ? slide : widest,
+  );
+
+  return (
+    <div
+      className="project-visual project-visual--image project-visual--carousel"
+      style={
+        {
+          "--project-media-ratio": `${frameRatio.width} / ${frameRatio.height}`,
+        } as StyleVariables
+      }
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={() => setPaused(false)}
+      aria-roledescription="carousel"
+      aria-label={`${project.title} — ${slides.length} views`}
+    >
+      <div className="project-visual__image-cell">
+        {slides.map((slide, slideIndex) => (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            key={slide.src}
+            src={slide.src}
+            alt={slide.alt}
+            width={slide.width}
+            height={slide.height}
+            /* Only the first frame blocks the case; the rest come in behind it. */
+            loading={slideIndex === 0 ? "eager" : "lazy"}
+            decoding="async"
+            className={
+              slideIndex === index
+                ? "project-carousel__slide project-carousel__slide--active"
+                : "project-carousel__slide"
+            }
+            aria-hidden={slideIndex === index ? undefined : true}
+          />
+        ))}
+        {active.label ? <span>{active.label}</span> : null}
+      </div>
+
+      <button
+        type="button"
+        className="project-carousel__arrow project-carousel__arrow--prev"
+        onClick={() => go(index - 1)}
+        aria-label="Previous view"
+      >
+        <span aria-hidden="true">‹</span>
+      </button>
+      <button
+        type="button"
+        className="project-carousel__arrow project-carousel__arrow--next"
+        onClick={() => go(index + 1)}
+        aria-label="Next view"
+      >
+        <span aria-hidden="true">›</span>
+      </button>
+
+      <span className="project-carousel__dots">
+        {slides.map((slide, dotIndex) => (
+          <button
+            key={slide.src}
+            type="button"
+            className={
+              dotIndex === index
+                ? "project-carousel__dot project-carousel__dot--active"
+                : "project-carousel__dot"
+            }
+            onClick={() => go(dotIndex)}
+            aria-label={`View ${dotIndex + 1} of ${slides.length}`}
+            aria-current={dotIndex === index ? "true" : undefined}
+          />
+        ))}
+      </span>
+
+      <span className="project-visual__scan" aria-hidden="true" />
+      <span
+        className="project-border-motion depth-5"
+        data-reveal="border"
+        data-depth="5"
+        data-fixed-depth
+        aria-hidden="true"
+      />
+      <span className="project-visual__corner project-visual__corner--a" aria-hidden="true" />
+      <span className="project-visual__corner project-visual__corner--b" aria-hidden="true" />
+    </div>
+  );
+}
+
 function ProjectSchematic({ project }: { project: Project }) {
+  if (project.carousel?.length) {
+    return <ProjectCarousel project={project} />;
+  }
+
   if (project.actualImage) {
     const mediaStyle = project.supportingImage
       ? undefined

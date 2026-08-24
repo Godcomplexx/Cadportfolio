@@ -1280,6 +1280,121 @@ canvas {
   transform: scale(1.025);
 }
 
+/* ===== PROJECT CAROUSEL =====
+   Slides are stacked in one cell and cross-faded, so the frame never reflows
+   between views and no horizontal scrolling is involved. */
+.project-visual--carousel .project-carousel__slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 620ms ease;
+  pointer-events: none;
+}
+
+.project-visual--carousel .project-carousel__slide--active {
+  opacity: 1;
+}
+
+/* The stacked slides are absolutely positioned, so the cell needs its own
+   height from the frame rather than from image flow. */
+.project-visual--carousel .project-visual__image-cell {
+  background: #050915;
+}
+
+/* Slides differ in shape — landscape viewport captures next to a portrait
+   drawing sheet — so each is fitted whole rather than cropped to the frame. */
+.project-visual--carousel .project-carousel__slide {
+  object-fit: contain;
+}
+
+.project-carousel__arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  display: grid;
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+  transform: translateY(-50%);
+  border: 1px solid rgba(196, 217, 255, 0.28);
+  border-radius: 0;
+  color: rgba(241, 246, 255, 0.9);
+  background: rgba(2, 5, 16, 0.72);
+  font: 400 1.1rem/1 var(--mono);
+  cursor: pointer;
+  place-items: center;
+  opacity: 0;
+  transition: opacity 260ms ease, border-color 200ms ease, color 200ms ease,
+    background 200ms ease;
+}
+
+.project-carousel__arrow--prev {
+  left: 0.6rem;
+}
+
+.project-carousel__arrow--next {
+  right: 0.6rem;
+}
+
+/* Revealed on hover to keep the resting frame clean; always present for keyboard
+   and touch users, who never produce a hover. */
+.project-visual--carousel:hover .project-carousel__arrow,
+.project-carousel__arrow:focus-visible {
+  opacity: 1;
+}
+
+.project-carousel__arrow:hover {
+  border-color: var(--project-accent, #ffe23d);
+  color: var(--project-accent, #ffe23d);
+  background: rgba(6, 14, 38, 0.9);
+}
+
+.project-carousel__arrow:focus-visible {
+  outline: 2px solid #ffe23d;
+  outline-offset: 2px;
+}
+
+.project-carousel__dots {
+  position: absolute;
+  bottom: 0.7rem;
+  left: 0.7rem;
+  z-index: 3;
+  display: flex;
+  gap: 0.34rem;
+}
+
+.project-carousel__dot {
+  width: 1.5rem;
+  height: 3px;
+  padding: 0;
+  border: 0;
+  background: rgba(241, 246, 255, 0.3);
+  cursor: pointer;
+  transition: background 240ms ease;
+}
+
+.project-carousel__dot--active {
+  background: var(--project-accent, #ffe23d);
+}
+
+.project-carousel__dot:focus-visible {
+  outline: 2px solid #ffe23d;
+  outline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+  /* Touch has no hover to reveal them, so the arrows stay visible. */
+  .project-carousel__arrow {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-visual--carousel .project-carousel__slide {
+    transition: none;
+  }
+}
+
 .project-visual__scan {
   position: absolute;
   inset: 0;
