@@ -86,6 +86,17 @@ export type VisualStudy = {
   image: ProjectImage;
 };
 
+/**
+ * The visual lab is presented as two advancing panels rather than a flat grid,
+ * so each study gets its own frame instead of a thumbnail. Studies are grouped
+ * by subject: object-scale work on one side, spaces on the other.
+ */
+export type VisualReel = {
+  key: string;
+  label: string;
+  studies: VisualStudy[];
+};
+
 export const projects: Project[] = [
   {
     key: "copet-pilot",
@@ -462,6 +473,27 @@ export const visualStudies: VisualStudy[] = [
       width: 1400,
       height: 1400,
     },
+  },
+];
+
+/**
+ * Split so the two panels read as distinct tracks: designed objects and
+ * materials on the left, inhabited space on the right.
+ */
+export const visualReels: VisualReel[] = [
+  {
+    key: "objects",
+    label: "Objects / materials",
+    studies: visualStudies.filter((study) =>
+      ["handheld", "procedural-object", "glass"].includes(study.key),
+    ),
+  },
+  {
+    key: "spaces",
+    label: "Spaces / environments",
+    studies: visualStudies.filter((study) =>
+      ["interior", "vending"].includes(study.key),
+    ),
   },
 ];
 

@@ -10,8 +10,9 @@ import {
   practiceMetrics,
   projectIndex,
   toolGroups,
-  visualStudies,
+  visualReels,
   type Project,
+  type VisualReel,
 } from "@/lib/projects";
 
 const cvUrl =
@@ -99,26 +100,44 @@ function HudGlitch({ text }: { text: string }) {
 /** How long each carousel slide is held before advancing, in milliseconds. */
 const CAROUSEL_INTERVAL_MS = 3200;
 
-function ProjectCarousel({ project }: { project: Project }) {
-  const slides = project.carousel ?? [];
+/**
+ * Advancing-slide state shared by the project and visual-lab carousels: which
+ * slide is showing, a manual jump, and the hold timer that pauses on hover.
+ */
+function useCarousel(length: number) {
   const [index, setIndex] = useState(0);
   // Paused while the visitor is interacting, so a slide cannot slip away from
   // under the cursor mid-read.
   const [paused, setPaused] = useState(false);
 
-  const go = (next: number) => setIndex((next + slides.length) % slides.length);
+  const go = (next: number) => setIndex((next + length) % length);
 
   useEffect(() => {
-    if (paused || slides.length < 2) return;
+    if (paused || length < 2) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const timer = window.setTimeout(
-      () => setIndex((value) => (value + 1) % slides.length),
+      () => setIndex((value) => (value + 1) % length),
       CAROUSEL_INTERVAL_MS,
     );
     return () => window.clearTimeout(timer);
     // `index` is a dependency so the hold restarts after a manual jump.
-  }, [index, paused, slides.length]);
+  }, [index, paused, length]);
+
+  // Bound to the frame so hovering anywhere over it holds the current slide.
+  const holdProps = {
+    onMouseEnter: () => setPaused(true),
+    onMouseLeave: () => setPaused(false),
+    onFocusCapture: () => setPaused(true),
+    onBlurCapture: () => setPaused(false),
+  };
+
+  return { index, go, holdProps };
+}
+
+function ProjectCarousel({ project }: { project: Project }) {
+  const slides = project.carousel ?? [];
+  const { index, go, holdProps } = useCarousel(slides.length);
 
   if (!slides.length) return null;
   const active = slides[index];
@@ -137,10 +156,7 @@ function ProjectCarousel({ project }: { project: Project }) {
           "--project-media-ratio": `${frameRatio.width} / ${frameRatio.height}`,
         } as StyleVariables
       }
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocusCapture={() => setPaused(true)}
-      onBlurCapture={() => setPaused(false)}
+      {...holdProps}
       aria-roledescription="carousel"
       aria-label={`${project.title} — ${slides.length} views`}
     >
@@ -470,6 +486,95 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
   );
 }
 
+function VisualReelPanel({ reel }: { reel: VisualReel }) {
+  const { studies } = reel;
+  const { index, go, holdProps } = useCarousel(studies.length);
+
+  if (!studies.length) return null;
+  const active = studies[index];
+
+  return (
+    <article
+      className="visual-reel"
+      id={`visual-lab-${active.key}`}
+      data-reveal="block"
+      {...holdProps}
+      aria-roledescription="carousel"
+      aria-label={`${reel.label} — ${studies.length} studies`}
+    >
+      <div className="visual-reel__frame">
+        <div className="visual-reel__media">
+          {studies.map((study, studyIndex) => (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              key={study.key}
+              src={study.image.src}
+              alt={study.image.alt}
+              width={study.image.width}
+              height={study.image.height}
+              /* Only the opening frame of each reel is worth fetching up front. */
+              loading={studyIndex === 0 ? "eager" : "lazy"}
+              decoding="async"
+              className={
+                studyIndex === index
+                  ? "visual-reel__slide visual-reel__slide--active"
+                  : "visual-reel__slide"
+              }
+              aria-hidden={studyIndex === index ? undefined : true}
+            />
+          ))}
+
+          {studies.length > 1 ? (
+            <>
+              <button
+                type="button"
+                className="project-carousel__arrow project-carousel__arrow--prev"
+                onClick={() => go(index - 1)}
+                aria-label="Previous study"
+              >
+                <span aria-hidden="true">‹</span>
+              </button>
+              <button
+                type="button"
+                className="project-carousel__arrow project-carousel__arrow--next"
+                onClick={() => go(index + 1)}
+                aria-label="Next study"
+              >
+                <span aria-hidden="true">›</span>
+              </button>
+
+              <span className="project-carousel__dots">
+                {studies.map((study, dotIndex) => (
+                  <button
+                    key={study.key}
+                    type="button"
+                    className={
+                      dotIndex === index
+                        ? "project-carousel__dot project-carousel__dot--active"
+                        : "project-carousel__dot"
+                    }
+                    onClick={() => go(dotIndex)}
+                    aria-label={`Study ${dotIndex + 1} of ${studies.length}`}
+                    aria-current={dotIndex === index ? "true" : undefined}
+                  />
+                ))}
+              </span>
+            </>
+          ) : null}
+        </div>
+      </div>
+
+      {/* The copy swaps with the slide, so the caption always matches the
+          image on screen. */}
+      <div className="visual-study__copy">
+        <p>{active.number} / {active.discipline}</p>
+        <h3>{active.title}</h3>
+        <small>{active.description}</small>
+      </div>
+    </article>
+  );
+}
+
 function VisualLab() {
   return (
     <section className="visual-lab" id="visual-lab" aria-labelledby="visual-lab-title">
@@ -484,35 +589,10 @@ function VisualLab() {
         </p>
       </header>
 
-      <div className="visual-lab__grid">
-        {visualStudies.map((study) => {
-          const descriptionId = `visual-lab-description-${study.key}`;
-          return (
-            <article
-              className="visual-study"
-              id={`visual-lab-${study.key}`}
-              key={study.key}
-              data-reveal="block"
-            >
-              <div className="visual-study__media">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={study.image.src}
-                  alt={study.image.alt}
-                  width={study.image.width}
-                  height={study.image.height}
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-              <div className="visual-study__copy">
-                <p>{study.number} / {study.discipline}</p>
-                <h3>{study.title}</h3>
-                <small id={descriptionId}>{study.description}</small>
-              </div>
-            </article>
-          );
-        })}
+      <div className="visual-lab__reels">
+        {visualReels.map((reel) => (
+          <VisualReelPanel key={reel.key} reel={reel} />
+        ))}
       </div>
     </section>
   );
