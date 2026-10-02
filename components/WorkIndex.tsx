@@ -1,9 +1,33 @@
-import type { ProjectIndexEntry } from "@/lib/projects";
+import { projectTracks, type ProjectIndexEntry } from "@/lib/projects";
 import { Words } from "@/components/Words";
 
-export function WorkIndex({ projects }: { projects: ProjectIndexEntry[] }) {
-  const categories = [...new Set(projects.map((project) => project.category))];
+function IndexRow({ project }: { project: ProjectIndexEntry }) {
+  const content = (
+    <>
+      <span className="work-index__number">{project.number}</span>
+      <span className="work-index__title">{project.title}</span>
+      <span className="work-index__category">{project.category}</span>
+      <span className="work-index__status">{project.status}</span>
+      <time dateTime={project.year}>{project.year}</time>
+      <i aria-hidden="true">{project.href ? "↘" : "—"}</i>
+    </>
+  );
 
+  return project.href ? (
+    <a
+      className="work-index__row"
+      href={project.href}
+      target={project.external ? "_blank" : undefined}
+      rel={project.external ? "noreferrer" : undefined}
+    >
+      {content}
+    </a>
+  ) : (
+    <div className="work-index__row work-index__row--pending">{content}</div>
+  );
+}
+
+export function WorkIndex({ projects }: { projects: ProjectIndexEntry[] }) {
   return (
     <section
       className="work-index grid12"
@@ -12,7 +36,7 @@ export function WorkIndex({ projects }: { projects: ProjectIndexEntry[] }) {
     >
       <header className="work-index__head">
         <div>
-          <p className="section-kicker">All work / current stage</p>
+          <p className="section-kicker">All work / three tracks</p>
           <Words
             as="h2"
             className="t-display"
@@ -25,36 +49,31 @@ export function WorkIndex({ projects }: { projects: ProjectIndexEntry[] }) {
         </p>
       </header>
 
-      <ul className="work-index__legend" aria-label="Project categories">
-        {categories.map((category) => <li key={category}>{category}</li>)}
+      {/* Jump links to the three shelves further down the page. */}
+      <ul className="work-index__legend" aria-label="Project tracks">
+        {projectTracks.map((track) => (
+          <li key={track.key}>
+            <a href={`#track-${track.key}`}>
+              {track.code} / {track.title}
+            </a>
+          </li>
+        ))}
       </ul>
 
       <div className="work-index__list">
-        {projects.map((project) => {
-          const content = (
-            <>
-              <span className="work-index__number">{project.number}</span>
-              <span className="work-index__title">{project.title}</span>
-              <span className="work-index__category">{project.category}</span>
-              <span className="work-index__status">{project.status}</span>
-              <time dateTime={project.year}>{project.year}</time>
-              <i aria-hidden="true">{project.href ? "↗" : "—"}</i>
-            </>
-          );
+        {projectTracks.map((track) => {
+          const rows = projects.filter((project) => project.track === track.key);
+          if (!rows.length) return null;
 
-          return project.href ? (
-            <a
-              className="work-index__row"
-              href={project.href}
-              key={project.key}
-              target={project.external ? "_blank" : undefined}
-              rel={project.external ? "noreferrer" : undefined}
-            >
-              {content}
-            </a>
-          ) : (
-            <div className="work-index__row work-index__row--pending" key={project.key}>
-              {content}
+          return (
+            <div className="work-index__group" key={track.key}>
+              <p className="work-index__group-title">
+                <span>{track.code}</span> {track.title}
+                <small>{String(rows.length).padStart(2, "0")}</small>
+              </p>
+              {rows.map((project) => (
+                <IndexRow project={project} key={project.key} />
+              ))}
             </div>
           );
         })}

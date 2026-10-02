@@ -1,6 +1,7 @@
 import { publicPath } from "@/lib/public-path";
 
 export const PROJECT_KEYS = [
+  "concussion-screener",
   "copet-pilot",
   "smartmotion",
   "modular-system",
@@ -13,6 +14,45 @@ export type ProjectCategory =
   | "PRODUCT / MECHANICAL"
   | "EMBEDDED HARDWARE"
   | "VISUALIZATION / MOTION";
+
+/**
+ * The three shelves the work is presented on. Every project — full case or
+ * draft — belongs to exactly one of them.
+ */
+export type ProjectTrack = "work" | "personal" | "idea";
+
+export const projectTracks: {
+  key: ProjectTrack;
+  code: string;
+  title: string;
+  kicker: string;
+  description: string;
+}[] = [
+  {
+    key: "work",
+    code: "A",
+    title: "Work projects",
+    kicker: "Built with a team / lab",
+    description:
+      "Projects developed inside a team, with real users and real constraints. Each case states exactly which part was mine.",
+  },
+  {
+    key: "personal",
+    code: "B",
+    title: "Personal projects",
+    kicker: "Self-initiated builds",
+    description:
+      "Things I wanted to exist, so I built them — from the first sketch to a working prototype on my desk.",
+  },
+  {
+    key: "idea",
+    code: "C",
+    title: "Ideas & concepts",
+    kicker: "Not built yet — on purpose",
+    description:
+      "Directions explored through renders, motion and system design before committing to hardware.",
+  },
+];
 
 type ProjectImage = {
   src: string;
@@ -30,8 +70,16 @@ type ProjectVideo = {
   description: string;
 };
 
+/** One step of the build story, optionally illustrated with a process image. */
+export type ProjectStep = {
+  title: string;
+  text: string;
+  image?: ProjectImage;
+};
+
 export type Project = {
   key: ProjectKey;
+  track: ProjectTrack;
   number: string;
   title: string;
   shortTitle: string;
@@ -45,11 +93,20 @@ export type Project = {
     | "Functional prototype"
     | "Working prototype";
   tools: string[];
+  /** 01 — what was wrong or missing, and for whom. */
+  problem: string;
+  /** 02 — the idea and the solution that came out of it. */
+  solution: string;
+  /** Scope and honest limits of what was built. */
   overview: string;
   role: string[];
-  development: { title: string; text: string }[];
+  /** 03 — how it was built, step by step. */
+  development: ProjectStep[];
   details: { label: string; value: string }[];
+  /** 04 — what works now. */
   result: string;
+  /** 05 — lessons taken from the build. */
+  learned: string[];
   nextStep: string;
   evidence: { verified: string[]; next: string[] };
   visualLabel: string;
@@ -66,11 +123,33 @@ export type Project = {
   tone: "coral" | "blue" | "sage" | "violet";
 };
 
-export type ProjectIndexEntry = {
-  key: ProjectKey;
+/**
+ * A project that is real but not yet written up as a full case: no final
+ * images or process photos yet. It is shown as a compact card with an image
+ * placeholder, and promoted to `projects` once the material is ready.
+ */
+export type ProjectDraft = {
+  key: string;
+  track: ProjectTrack;
   number: string;
   title: string;
-  category: ProjectCategory;
+  year: string;
+  status: string;
+  problem: string;
+  solution: string;
+  tools: string[];
+  /** What the missing image should show — printed inside the placeholder. */
+  imageNote: string;
+  image?: ProjectImage;
+  source?: { label: string; href: string };
+};
+
+export type ProjectIndexEntry = {
+  key: string;
+  track: ProjectTrack;
+  number: string;
+  title: string;
+  category: string;
   year: string;
   status: string;
   href: string;
@@ -99,8 +178,108 @@ export type VisualReel = {
 
 export const projects: Project[] = [
   {
-    key: "copet-pilot",
+    key: "concussion-screener",
+    track: "work",
     number: "01",
+    title: "AI Concussion Screener",
+    shortTitle: "Concussion Screener",
+    strapline:
+      "A handheld eyepiece device that screens for concussion from a one-minute eye-tracking session — offline, at the point of injury.",
+    category: "EMBEDDED HARDWARE",
+    categories: ["EMBEDDED HARDWARE", "PRODUCT / MECHANICAL"],
+    year: "2026",
+    status: "Working prototype",
+    tools: ["Orange Pi", "IR camera", "OpenCV", "PyTorch", "scikit-learn", "3D printing"],
+    problem:
+      "Concussion is still judged largely by eye: clinician observation, self-reporting and paper tests such as SCAT5 or King-Devick. They are slow, subjective and rarely available on a sports sideline or in the field — exactly where the first decision has to be made.",
+    solution:
+      "A self-contained eyepiece device. The person looks in and presses one button; an IR camera records pupil reflex, fixation and eye movement for about a minute, five on-device models classify the patterns, and a green or red LED gives the screening result — no network and no clinician needed at the point of care.",
+    overview:
+      "The capture protocol is fixed: a 3 s resting baseline, about 35 s of light flashes and 20 s of fixation. Every session is stored for later review. This is a screening prototype, not a certified diagnostic device.",
+    role: [
+      "I designed the system architecture across hardware, software and ML.",
+      "I implemented the embedded state machine with camera, GPIO and LED control.",
+      "I built the eye-tracking pipeline and trained and validated five models.",
+      "I wrote the deployment layer: boot services, USB export and model updates.",
+    ],
+    development: [
+      {
+        title: "Define what to measure",
+        text: "Pupil light reflex, fixation stability, smooth pursuit, saccades and random-shift tracking were chosen as measurable indicators and fixed into one timed capture sequence.",
+      },
+      {
+        title: "Capture hardware",
+        text: "An IR camera and IR LED array behind an eyepiece give a dark, repeatable view of the pupil, independent of room light. An Orange Pi handles capture and inference.",
+        image: {
+          src: publicPath("/media/concussion/ir-capture.webp"),
+          alt: "Infrared camera frame of an eye captured through the device eyepiece.",
+          width: 724,
+          height: 350,
+          label: "IR capture through the eyepiece",
+        },
+      },
+      {
+        title: "Signal to decision",
+        text: "Eye detection and pupil tracking turn video into time series; outliers are removed and the data normalised before five classifiers — SVM, MLP, CNN, Naive Bayes and KNN — each judge one eye pattern.",
+      },
+      {
+        title: "Enclosure",
+        text: "The housing is modelled for 3D printing around the camera and eyepiece, the compute board, IR LEDs, status LEDs, start button, USB-C power and USB-A data port.",
+      },
+      {
+        title: "Field-ready behaviour",
+        text: "The device boots straight into a waiting state, protects itself from overheating, exports sessions to a USB drive and accepts new models the same way.",
+      },
+    ],
+    details: [
+      { label: "Compute", value: "Orange Pi · ARM64" },
+      { label: "Sensor", value: "IR camera + IR LED array" },
+      { label: "Session", value: "≈ 60 s, button to result" },
+      { label: "Models", value: "5 classifiers, k-fold validated" },
+      { label: "Output", value: "Green / red LED" },
+      { label: "Network", value: "None — fully offline" },
+    ],
+    result:
+      "A working, fully autonomous prototype: real-time inference on an ARM single-board computer, all five models validated with stratified k-fold cross-validation, and about 60 seconds from button press to result. The device is covered by a patent I co-authored.",
+    learned: [
+      "Hardware starts from the measurement: the eyepiece, IR light and camera position exist to make one signal clean.",
+      "A device for non-specialists needs one button and one unambiguous output — every extra state is a place to fail.",
+      "Shipping embedded ML is mostly the unglamorous part: boot, heat, storage and updates took as long as the models.",
+    ],
+    nextStep:
+      "Validate on a larger dataset and document the enclosure revision with section views and an assembly drawing.",
+    evidence: {
+      verified: ["Working device", "5 validated models", "Co-authored patent"],
+      next: ["Larger dataset", "Enclosure drawings"],
+    },
+    visualLabel: "DEVICE RENDER + ENCLOSURE CAD",
+    visualRatio: "2 VIEWS / BUILD EVIDENCE",
+    carousel: [
+      {
+        src: publicPath("/media/concussion/device-render.webp"),
+        alt: "Render of the cylindrical concussion screening device with a black eyepiece, status LEDs and a red start button.",
+        width: 1600,
+        height: 900,
+        label: "Product render",
+      },
+      {
+        src: publicPath("/media/concussion/enclosure-cad.webp"),
+        alt: "CAD model of the 3D-printable device enclosure with eyepiece cone, mounting lugs and LED openings.",
+        width: 1002,
+        height: 779,
+        label: "Enclosure CAD / for print",
+      },
+    ],
+    source: {
+      label: "View system documentation",
+      href: "https://github.com/Godcomplexx/AI-based-Concussion-Screening-Device",
+    },
+    tone: "coral",
+  },
+  {
+    key: "copet-pilot",
+    track: "personal",
+    number: "02",
     title: "CoPet Pilot",
     shortTitle: "CoPet Pilot",
     strapline:
@@ -110,6 +289,10 @@ export const projects: Project[] = [
     year: "2026",
     status: "Working prototype",
     tools: ["ESP32", "ST7789", "Sensors", "Audio", "C / C++"],
+    problem:
+      "Most desk gadgets are either silent objects or one more screen asking for attention through a phone app. I wanted something in between: a small physical companion that notices touch, motion and the room, and answers with a face instead of notifications.",
+    solution:
+      "An ESP32 desk companion with a 240 × 240 face display, a wheel and touch for input, motion and climate sensing, and a microphone-to-speaker audio path — all coordinated by one state-based interaction model, so every input produces a visible reaction on the device.",
     overview:
       "CoPet Pilot combines a 240 × 240 display, wheel input, touch, motion, environmental sensing and audio in one working desk prototype. The current build proves the electronics, firmware and interaction system. A custom PCB and integrated enclosure are the next product-development stage, so neither is presented here as finished.",
     role: [
@@ -146,6 +329,11 @@ export const projects: Project[] = [
     ],
     result:
       "The assembled prototype runs the interface, reacts to physical inputs and validates the core hardware and firmware integration.",
+    learned: [
+      "Bringing up one subsystem at a time, backed by host-side tests, made the final integration predictable.",
+      "An open build is the best enclosure brief: it shows the real cable runs, component heights and service points before any CAD.",
+      "Interaction only feels alive when it is fast — firmware structure mattered as much as the face animation.",
+    ],
     nextStep:
       "Translate the proven component stack into enclosure CAD, then document section, assembly and fit-test evidence.",
     evidence: {
@@ -168,7 +356,8 @@ export const projects: Project[] = [
   },
   {
     key: "smartmotion",
-    number: "02",
+    track: "personal",
+    number: "03",
     title: "SmartMotion Keychain",
     shortTitle: "SmartMotion",
     strapline:
@@ -178,6 +367,10 @@ export const projects: Project[] = [
     year: "2026",
     status: "Working prototype",
     tools: ["ESP-IDF", "ESP32-C3", "MPU-6050", "OLED", "BLE", "Android"],
+    problem:
+      "A keychain is the object you carry everywhere and never look at. Could something pocket-sized react to how it is moved — and spend the rest of its time asleep, so a tiny battery lasts?",
+    solution:
+      "An ESP32-C3 keychain with a 0.96″ OLED and an MPU-6050. It shows a fluid animation that follows tilt, sleeps when still, wakes when picked up, tells the time synced over BLE from an Android app, and turns into a tilt-controlled game after a triple shake.",
     overview:
       "SmartMotion is a compact object that reacts to movement, sleeps when still, wakes when picked up and becomes a tilt-controlled game. The firmware, companion app and electronics work together; the current enclosure image communicates the product direction, while enclosure integration remains in development.",
     role: [
@@ -214,6 +407,11 @@ export const projects: Project[] = [
     ],
     result:
       "The firmware, companion app and electronics operate as a connected prototype with motion input, a playable interface and low-power states.",
+    learned: [
+      "Designing the behaviour before the shell kept the form honest — the modes defined what the object had to be.",
+      "Low power is a product feature: using the motion sensor as the wake source shaped both firmware and wiring.",
+      "At keychain scale every millimetre is a decision, so the next enclosure starts from measured parts, not from the render.",
+    ],
     nextStep:
       "Integrate the assembled electronics into the next enclosure iteration and document the physical fit.",
     evidence: {
@@ -236,6 +434,7 @@ export const projects: Project[] = [
   },
   {
     key: "modular-system",
+    track: "personal",
     number: "04",
     title: "SolidWorks Mechanical Foundations",
     shortTitle: "SolidWorks Study",
@@ -246,6 +445,10 @@ export const projects: Project[] = [
     year: "2025—2026",
     status: "Documented study",
     tools: ["SolidWorks", "Part modeling", "Assemblies", "Drawings", "Design intent"],
+    problem:
+      "I could model shapes, but not documentation someone else could manufacture from. I needed a disciplined foundation: design intent that survives edits, assemblies held together by constraints, and drawings linked to the model.",
+    solution:
+      "A structured SolidWorks practice of 32 native documents — 16 parametric parts, 8 constrained assemblies and 8 linked drawings — where each exercise targets one skill: patterns, configurations, mates, section and detail views.",
     overview:
       "This is a real SolidWorks study archive, not a placeholder concept. It contains 32 native CAD documents: 16 parts, 8 assemblies and 8 drawings. The work covers parametric features, patterns, configurations, mating, section views and drawing layouts; the case presents it honestly as mechanical foundations rather than manufacturing validation.",
     role: [
@@ -282,6 +485,11 @@ export const projects: Project[] = [
     ],
     result:
       "The archive demonstrates a complete beginner-to-intermediate SolidWorks workflow across editable parts, assemblies and linked drawings.",
+    learned: [
+      "Design intent is decided in the first sketch: dimensioning to function makes later changes cheap.",
+      "Assemblies expose mistakes that single parts hide — mates are a test of the geometry.",
+      "A drawing is written for its reader: views, sections and tolerances are chosen for the person who has to make the part.",
+    ],
     nextStep:
       "Select one mechanism for a tolerance-aware drawing package and document a physical Rev A to Rev B fit test.",
     evidence: {
@@ -332,7 +540,8 @@ export const projects: Project[] = [
   },
   {
     key: "eeg-wearable",
-    number: "03",
+    track: "idea",
+    number: "05",
     title: "Wearable EEG",
     shortTitle: "EEG Wearable",
     strapline:
@@ -342,6 +551,10 @@ export const projects: Project[] = [
     year: "2026",
     status: "Concept",
     tools: ["Blender", "Plasticity", "Lighting", "Animation", "Compositing"],
+    problem:
+      "Wearable neurotech is hard to explain: the important parts are inside, and the electrode contact disappears once the device is worn. A spec list does not show how the object is actually built.",
+    solution:
+      "A 26-second vertical product film that moves from the assembled earpiece to an exploded view — shell, contact layer, electronics stack — so the construction reads as one continuous sequence.",
     overview:
       "This case focuses on communication: how external form, contact interface and an intended internal stack can be explained in one concise visual sequence. It is a visualization concept, not a validated medical device or a mechanical proof case.",
     role: ["I developed the visual direction and enclosure concept."],
@@ -373,6 +586,11 @@ export const projects: Project[] = [
     ],
     result:
       "The work defines a concise visual language for a technically informed wearable concept without presenting it as a tested device.",
+    learned: [
+      "An exploded view needs an order: the sequence of separation is itself the explanation.",
+      "Restrained materials and lighting keep attention on construction rather than surface.",
+      "A concept should say it is a concept — the film communicates intent, not validation.",
+    ],
     nextStep: "Refine lighting, pacing and the captioned presentation export.",
     evidence: {
       verified: ["Form study", "Material direction", "Exploded sequence"],
@@ -393,15 +611,84 @@ export const projects: Project[] = [
 ];
 
 const featuredProjectOrder = [
+  "concussion-screener",
   "copet-pilot",
   "smartmotion",
-  "eeg-wearable",
   "modular-system",
+  "eeg-wearable",
 ] as const;
 
 export const featuredProjects = featuredProjectOrder
   .map((key) => projects.find((project) => project.key === key))
   .filter((project): project is Project => project !== undefined);
+
+/**
+ * Real projects still waiting for final images and a full write-up. Move one
+ * into `projects` (with problem → solution → steps → result → learned) once
+ * its photos and renders exist.
+ */
+export const projectDrafts: ProjectDraft[] = [
+  {
+    key: "neuro-mirror",
+    track: "work",
+    number: "W2",
+    title: "Neuro Mirror",
+    year: "2026",
+    status: "Case study in progress",
+    problem:
+      "Cognitive screening such as MoCA and HADS depends on a specialist to read every task aloud, score the answers and track change between sessions.",
+    solution:
+      "A local, voice-driven app: 11 spoken MoCA tasks recognised with GigaAM and scored automatically, a four-domain cognitive profile that shapes the training session, pulse from camera video and a local AI assistant — with separate, explicit consent for any recording.",
+    tools: ["Python", "GigaAM", "Ollama", "OpenCV", "rPPG"],
+    imageNote: "Screens: voice test flow + cognitive profile",
+    source: { label: "Source", href: "https://github.com/Godcomplexx/nero_mirro" },
+  },
+  {
+    key: "finger-gym",
+    track: "work",
+    number: "W3",
+    title: "Finger GYM",
+    year: "2026",
+    status: "Case study in progress",
+    problem:
+      "Fine motor skills of the hand are usually assessed by eye, which makes small changes between sessions hard to notice and harder to prove.",
+    solution:
+      "A webcam test module: MediaPipe tracks 21 hand landmarks, calibrates on an open palm, runs a series of exercises and turns them into a readiness index. Ultraleap is supported as a second tracker.",
+    tools: ["Python", "MediaPipe", "OpenCV", "Ultraleap"],
+    imageNote: "Photo: hand skeleton overlay during a test",
+    source: { label: "Source", href: "https://github.com/Godcomplexx/Finger_GYM" },
+  },
+  {
+    key: "nfc-image-writer",
+    track: "personal",
+    number: "P5",
+    title: "NFC Image Writer",
+    year: "2026",
+    status: "Experiment",
+    problem:
+      "Putting a new picture on a small display usually means a cable, a radio module and firmware on the device side.",
+    solution:
+      "A web page that converts any image to 128 × 64 monochrome and writes it straight to an ST25DV16K NFC tag from an Android phone using Web NFC.",
+    tools: ["Web NFC", "ST25DV16K", "OLED 128 × 64", "JavaScript"],
+    imageNote: "Photo: phone tapping the display, before / after",
+    source: { label: "Source", href: "https://github.com/Godcomplexx/nfc_harvest_test" },
+  },
+  {
+    key: "eink-oracle",
+    track: "idea",
+    number: "I2",
+    title: "E-ink Oracle",
+    year: "2026",
+    status: "Concept · web version live",
+    problem:
+      "Every screen at home is an endless feed. I wanted an object that gives exactly one image and one message a day — and then stops.",
+    solution:
+      "A single-purpose e-ink object: XIAO ESP32-S3, a 3.7″ e-paper display, one draw button, a battery and a custom enclosure, driven by a weighted card graph. The web version already runs online.",
+    tools: ["XIAO ESP32-S3", "E-paper 3.7″", "Enclosure CAD"],
+    imageNote: "Enclosure sketch + first render",
+    source: { label: "Web version", href: "https://einkoracle.org/" },
+  },
+];
 
 export const visualStudies: VisualStudy[] = [
   {
@@ -522,26 +809,32 @@ export const toolGroups = [
   },
 ] as const;
 
-export const projectIndex: ProjectIndexEntry[] = [
-  ...featuredProjects.map((project) => ({
-    key: project.key,
-    number: project.number,
-    title: project.title,
-    category: project.category,
-    year: project.year,
-    status: project.status,
-    href: `#project-${project.key}`,
-  })),
-  {
-    key: "handheld-media",
-    number: "05",
-    title: "Handheld Media Object",
-    category: "VISUALIZATION / MOTION",
-    year: "2026",
-    status: "Render study",
-    href: "#visual-lab-handheld",
-  },
-];
+export const projectIndex: ProjectIndexEntry[] = projectTracks.flatMap((track) => [
+  ...featuredProjects
+    .filter((project) => project.track === track.key)
+    .map((project) => ({
+      key: project.key,
+      track: project.track,
+      number: project.number,
+      title: project.title,
+      category: project.category,
+      year: project.year,
+      status: project.status,
+      href: `#project-${project.key}`,
+    })),
+  ...projectDrafts
+    .filter((draft) => draft.track === track.key)
+    .map((draft) => ({
+      key: draft.key,
+      track: draft.track,
+      number: draft.number,
+      title: draft.title,
+      category: draft.tools.slice(0, 2).join(" / ").toUpperCase(),
+      year: draft.year,
+      status: draft.status,
+      href: `#draft-${draft.key}`,
+    })),
+]);
 
 export const projectByKey = Object.fromEntries(
   projects.map((project) => [project.key, project]),

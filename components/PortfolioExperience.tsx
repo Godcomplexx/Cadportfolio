@@ -8,10 +8,13 @@ import { WorkIndex } from "@/components/WorkIndex";
 import {
   featuredProjects,
   practiceMetrics,
+  projectDrafts,
   projectIndex,
+  projectTracks,
   toolGroups,
   visualReels,
   type Project,
+  type ProjectDraft,
   type VisualReel,
 } from "@/lib/projects";
 
@@ -69,18 +72,25 @@ const process = [
 ] as const;
 
 const projectColors: Partial<Record<Project["key"], string>> = {
+  "concussion-screener": "#ffb86b",
   "copet-pilot": "#a8ff35",
   smartmotion: "#60d9ff",
   "modular-system": "#ff6bdd",
   "eeg-wearable": "#c3b8ff",
 };
 
-function firstSentence(text: string) {
-  return `${text.split(". ")[0].replace(/\.$/, "")}.`;
-}
-
 function compactRole(text: string) {
   return text.replace(/^I\s+/, "").replace(/\.$/, "");
+}
+
+/** Numbered chapter heading inside a case: 01 Problem, 02 Idea, … */
+function CaseHeading({ number, children }: { number: string; children: string }) {
+  return (
+    <h5 className="case-heading" data-reveal="line">
+      <span aria-hidden="true">{number}</span>
+      {children}
+    </h5>
+  );
 }
 
 function HudGlitch({ text }: { text: string }) {
@@ -358,7 +368,15 @@ function ProjectSchematic({ project }: { project: Project }) {
   );
 }
 
-function ProjectTile({ project, index }: { project: Project; index: number }) {
+function ProjectTile({
+  project,
+  index,
+  featured,
+}: {
+  project: Project;
+  index: number;
+  featured: boolean;
+}) {
   const style = {
     "--project-index": index,
     "--project-accent": projectColors[project.key] ?? "#c3b8ff",
@@ -366,7 +384,7 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
 
   return (
     <article
-      className={`project-tile project-tile--${project.key} ${index === 0 ? "project-tile--featured" : ""}`}
+      className={`project-tile project-tile--${project.key} ${featured ? "project-tile--featured" : ""}`}
       id={`project-${project.key}`}
       aria-labelledby={`project-title-${project.key}`}
       style={style}
@@ -390,69 +408,108 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
 
       <div className="project-tile__copy depth-4" data-depth="4">
         <p className="project-tile__meta" data-reveal="line">
-          {String(index + 1).padStart(2, "0")} / {String(featuredProjects.length).padStart(2, "0")} &nbsp; {project.year} &nbsp; {project.status}
+          {project.number} &nbsp; {project.year} &nbsp; {project.status}
         </p>
-        <h3 id={`project-title-${project.key}`} data-reveal="text">
+        <h4 className="project-tile__title" id={`project-title-${project.key}`} data-reveal="text">
           {project.key === "smartmotion" ? <><span>Smart</span><br /><span>Motion</span></> : project.shortTitle}
-        </h3>
+        </h4>
         <p className="project-tile__strapline" data-reveal="line">
           {project.strapline}
         </p>
-        {/* The overview carries the actual scope and the honest limits of the
-            build. It was written in the data but never rendered, which left the
-            case resting on a one-line strapline. */}
-        <p className="project-tile__overview" data-reveal="line">
-          {project.overview}
-        </p>
-        <dl className="project-tile__facts" data-reveal="block">
-          <div>
-            <dt>My role</dt>
-            <dd>{compactRole(project.role[0])}</dd>
-          </div>
-          <div>
-            <dt>Proof</dt>
-            <dd>{firstSentence(project.result)}</dd>
-          </div>
-        </dl>
 
-        {/* Hard specification. For a hardware role this is the most convincing
-            content on the page — concrete parts and measured test counts. */}
-        <dl className="project-tile__spec" data-reveal="block">
-          {project.details.map((detail) => (
-            <div key={detail.label}>
-              <dt>{detail.label}</dt>
-              <dd>{detail.value}</dd>
+        {/* The case reads as a maker story: what was wrong, what I decided to
+            build, how I built it, what works now and what it taught me. */}
+        <section className="case-chapter">
+          <CaseHeading number="01">The problem</CaseHeading>
+          <p className="case-chapter__lead" data-reveal="line">{project.problem}</p>
+        </section>
+
+        <section className="case-chapter">
+          <CaseHeading number="02">The idea</CaseHeading>
+          <p className="case-chapter__lead" data-reveal="line">{project.solution}</p>
+          {/* Scope and honest limits, so the idea never overclaims. */}
+          <p className="project-tile__overview" data-reveal="line">
+            {project.overview}
+          </p>
+          <dl className="project-tile__facts" data-reveal="block">
+            <div>
+              <dt>My role</dt>
+              <dd>
+                <ul>
+                  {project.role.map((item) => <li key={item}>{compactRole(item)}</li>)}
+                </ul>
+              </dd>
             </div>
-          ))}
-        </dl>
-        {/* How the thing was actually built. Reviewers hire for process as much
-            as outcome, and these steps were sitting unused in the data. */}
-        <ol className="project-tile__process" data-reveal="block">
-          {project.development.map((step, stepIndex) => (
-            <li key={step.title}>
-              <span aria-hidden="true">{String(stepIndex + 1).padStart(2, "0")}</span>
-              <div>
-                <strong>{step.title}</strong>
-                <p>{step.text}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
+          </dl>
+        </section>
 
-        <div className="project-tile__evidence" data-reveal="block">
-          <div>
-            <span>Verified</span>
-            <ul>
-              {project.evidence.verified.map((item) => <li key={item}>{item}</li>)}
-            </ul>
+        <section className="case-chapter">
+          <CaseHeading number="03">How I built it</CaseHeading>
+          <ol className="project-tile__process" data-reveal="block">
+            {project.development.map((step, stepIndex) => (
+              <li key={step.title}>
+                <span aria-hidden="true">{String(stepIndex + 1).padStart(2, "0")}</span>
+                <div>
+                  <strong>{step.title}</strong>
+                  <p>{step.text}</p>
+                  {step.image ? (
+                    <figure className="project-tile__step-image">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={step.image.src}
+                        alt={step.image.alt}
+                        width={step.image.width}
+                        height={step.image.height}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      {step.image.label ? <figcaption>{step.image.label}</figcaption> : null}
+                    </figure>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="case-chapter">
+          <CaseHeading number="04">The result</CaseHeading>
+          <p className="case-chapter__lead" data-reveal="line">{project.result}</p>
+          {/* Hard specification: concrete parts and measured numbers. */}
+          <dl className="project-tile__spec" data-reveal="block">
+            {project.details.map((detail) => (
+              <div key={detail.label}>
+                <dt>{detail.label}</dt>
+                <dd>{detail.value}</dd>
+              </div>
+            ))}
+          </dl>
+          <div className="project-tile__evidence" data-reveal="block">
+            <div>
+              <span>Verified</span>
+              <ul>
+                {project.evidence.verified.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+            </div>
+            <div>
+              <span>Next proof</span>
+              <ul>
+                {project.evidence.next.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+            </div>
           </div>
-          <div>
-            <span>Next proof</span>
-            <ul>
-              {project.evidence.next.map((item) => <li key={item}>{item}</li>)}
-            </ul>
-          </div>
-        </div>
+        </section>
+
+        <section className="case-chapter">
+          <CaseHeading number="05">What I learned</CaseHeading>
+          <ul className="case-learned" data-reveal="block">
+            {project.learned.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+          <p className="case-next" data-reveal="line">
+            <span>Next →</span> {project.nextStep}
+          </p>
+        </section>
+
         <footer className="project-tile__footer">
           {/* Full stack, not the first three: these are the exact keywords a
               technical reviewer scans for. */}
@@ -472,7 +529,7 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
       </div>
 
       <span className="project-tile__label depth-5" data-depth="5" aria-hidden="true">
-        {index === 0
+        {featured
           ? "FEATURED SYSTEM"
           : project.status === "Documented study"
             ? "NATIVE CAD STUDY"
@@ -482,6 +539,67 @@ function ProjectTile({ project, index }: { project: Project; index: number }) {
                 ? "CONCEPT STUDY"
                 : "WORKING PROTOTYPE"}
       </span>
+    </article>
+  );
+}
+
+/**
+ * A real project whose images and full write-up are still being prepared. The
+ * placeholder states what the missing picture will show, so the gap reads as
+ * work in progress rather than an empty frame.
+ */
+function DraftCard({ draft }: { draft: ProjectDraft }) {
+  return (
+    <article
+      className="draft-card"
+      id={`draft-${draft.key}`}
+      aria-labelledby={`draft-title-${draft.key}`}
+      data-reveal="block"
+    >
+      <div className="draft-card__media">
+        {draft.image ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={draft.image.src}
+            alt={draft.image.alt}
+            width={draft.image.width}
+            height={draft.image.height}
+            loading="lazy"
+            decoding="async"
+          />
+        ) : (
+          <div className="draft-card__placeholder" role="img" aria-label={`Image in progress: ${draft.imageNote}`}>
+            <span>Image in progress</span>
+            <small>{draft.imageNote}</small>
+          </div>
+        )}
+      </div>
+      <div className="draft-card__body">
+        <p className="draft-card__meta">
+          {draft.number} &nbsp; {draft.year} &nbsp; {draft.status}
+        </p>
+        <h4 id={`draft-title-${draft.key}`}>{draft.title}</h4>
+        <dl>
+          <div>
+            <dt>Problem</dt>
+            <dd>{draft.problem}</dd>
+          </div>
+          <div>
+            <dt>Idea</dt>
+            <dd>{draft.solution}</dd>
+          </div>
+        </dl>
+        <footer>
+          <ul aria-label={`${draft.title} tools`}>
+            {draft.tools.map((tool) => <li key={tool}>{tool}</li>)}
+          </ul>
+          {draft.source ? (
+            <a href={draft.source.href} target="_blank" rel="noreferrer">
+              {draft.source.label} <span aria-hidden="true">↗</span>
+            </a>
+          ) : null}
+        </footer>
+      </div>
     </article>
   );
 }
@@ -821,19 +939,65 @@ export function PortfolioExperience() {
             01—{String(featuredProjects.length).padStart(2, "0")}
           </p>
           <div className="work-intro__copy depth-4" data-depth="4">
-            <p className="section-kicker" data-reveal="line">Selected CAD + product / 2025—2026</p>
+            <p className="section-kicker" data-reveal="line">Work / personal / ideas — 2025—2026</p>
             <h2 id="work-title" data-reveal="text">SELECTED<br />WORK</h2>
-            <p data-reveal="line">Four selected cases — working hardware, enclosure direction, native SolidWorks source and product motion.</p>
+            <p data-reveal="line">
+              Every case follows the same path: the problem, the idea, how I built it,
+              what works now and what it taught me.
+            </p>
           </div>
-          <p className="work-intro__note depth-5" data-depth="5" aria-hidden="true">FORM / SIGNAL / PROOF</p>
+          <p className="work-intro__note depth-5" data-depth="5" aria-hidden="true">PROBLEM / PROCESS / PROOF</p>
         </header>
 
         <div className="section-transition" aria-hidden="true" />
-        <div className="project-gallery">
-          {featuredProjects.map((project, index) => (
-            <ProjectTile project={project} index={index} key={project.key} />
-          ))}
-        </div>
+        {projectTracks.map((track) => {
+          const cases = featuredProjects.filter((project) => project.track === track.key);
+          const drafts = projectDrafts.filter((draft) => draft.track === track.key);
+          if (!cases.length && !drafts.length) return null;
+
+          return (
+            <section
+              className="project-track"
+              id={`track-${track.key}`}
+              key={track.key}
+              aria-labelledby={`track-title-${track.key}`}
+            >
+              <header className="project-track__head">
+                <span className="project-track__code" aria-hidden="true">{track.code}</span>
+                <div>
+                  <p className="section-kicker" data-reveal="line">{track.kicker}</p>
+                  <h3 id={`track-title-${track.key}`} data-reveal="text">{track.title}</h3>
+                </div>
+                <p data-reveal="line">{track.description}</p>
+                <span className="t-label">
+                  {String(cases.length + drafts.length).padStart(2, "0")} projects
+                </span>
+              </header>
+
+              {cases.length ? (
+                <div className="project-gallery">
+                  {cases.map((project, index) => (
+                    <ProjectTile
+                      project={project}
+                      index={index}
+                      featured={project.key === featuredProjects[0]?.key}
+                      key={project.key}
+                    />
+                  ))}
+                </div>
+              ) : null}
+
+              {drafts.length ? (
+                <div className="draft-grid">
+                  <p className="draft-grid__label">
+                    {cases.length ? "More in this track — write-up in progress" : "Write-ups in progress"}
+                  </p>
+                  {drafts.map((draft) => <DraftCard draft={draft} key={draft.key} />)}
+                </div>
+              ) : null}
+            </section>
+          );
+        })}
       </section>
 
       <VisualLab />
