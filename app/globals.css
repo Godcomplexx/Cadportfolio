@@ -2245,174 +2245,6 @@ canvas {
   }
 }
 
-/* VISUAL LAB — selected CAD-adjacent form, material and motion studies. */
-.visual-lab {
-  position: relative;
-  z-index: 3;
-  padding: clamp(4rem, 6vw, 7rem) var(--pad) clamp(7rem, 11vw, 12rem);
-  color: var(--paper);
-  background: transparent;
-}
-
-.visual-lab__head {
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
-  gap: clamp(2rem, 7vw, 8rem);
-  align-items: end;
-  margin-bottom: clamp(4rem, 7vw, 7rem);
-}
-
-.visual-lab__head h2 {
-  margin: 0;
-  font: 900 clamp(3.8rem, 8.7vw, 10.5rem)/0.86 var(--display);
-  letter-spacing: -0.04em;
-  text-transform: uppercase;
-}
-
-.visual-lab__head > p {
-  margin: 0 0 0.35rem;
-  color: var(--muted);
-  font: 400 clamp(0.67rem, 0.78vw, 0.84rem)/1.65 var(--mono);
-}
-
-.visual-study__copy > p {
-  margin: 0;
-  color: var(--cyan);
-  font: 400 0.5rem/1.35 var(--mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.visual-reel h3 {
-  margin: 1.6rem 0 1rem;
-  font: 400 clamp(1.2rem, 1.8vw, 2rem)/1.15 var(--mono);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.tool-groups ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin: auto 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.tool-groups li {
-  padding: 0.42rem 0.5rem;
-  color: rgba(239, 244, 255, 0.63);
-  border: 1px solid var(--line);
-  font: 400 0.5rem/1 var(--mono);
-}
-
-/* Two advancing panels rather than a grid of thumbnails. Each column is sized
-   by its artwork instead of by the row, so a panel never grows wider than the
-   image inside it and leaves bars down the sides. */
-.visual-lab__reels {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1px;
-  padding: 1px;
-  background: var(--line);
-}
-
-/* Width comes from the frame, so the caption block below sits exactly under the
-   artwork rather than stretching past it. */
-.visual-reel {
-  position: relative;
-  display: grid;
-  min-width: 0;
-  width: min(100%, 46svh, 26rem);
-  grid-template-rows: auto minmax(13rem, 1fr);
-  background: var(--night);
-}
-
-.visual-reel__frame {
-  display: flex;
-  min-width: 0;
-}
-
-/* Square, matching the four 1:1 studies: the frame takes the shape of the
-   artwork rather than the artwork being cropped or padded to fit the frame.
-   Width is capped so the square cannot grow taller than the viewport, which
-   keeps the frame and its caption together on one screen. */
-.visual-reel__media {
-  position: relative;
-  width: min(100%, 46svh, 26rem);
-  aspect-ratio: 1;
-  overflow: hidden;
-  background: #050815;
-}
-
-/* Slides stack in one cell and cross-fade, so the panel never reflows between
-   studies of differing proportions. */
-.visual-reel__slide {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  /* The whole render is shown at its own proportions: nothing is cropped away
-     and nothing is scaled up past its source size. Because the frame matches
-     the artwork's shape, a fitted square leaves no bars at the sides. */
-  object-fit: contain;
-  object-position: center;
-  background: #050815;
-  opacity: 0;
-  filter: saturate(0.82) contrast(1.03);
-  transition: opacity 620ms ease, filter 300ms ease;
-  pointer-events: none;
-}
-
-.visual-reel__slide--active {
-  opacity: 1;
-}
-
-/* Colour lifts on hover, but the image is not scaled: a contained render has
-   visible edges, so zooming it would crop them against the frame. */
-@media (hover: hover) {
-  .visual-reel:hover .visual-reel__slide--active {
-    filter: saturate(1) contrast(1);
-  }
-}
-
-/* Arrows are revealed on hover, matching the project carousel. */
-.visual-reel:hover .project-carousel__arrow {
-  opacity: 1;
-}
-
-@media (max-width: 900px) {
-  .visual-lab__reels {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .visual-reel__slide {
-    transition: none;
-  }
-}
-
-.visual-study__copy {
-  min-height: 13rem;
-  padding: 1.25rem;
-  border-top: 1px solid var(--line);
-}
-
-.visual-reel h3 {
-  margin: 2.5rem 0 0.8rem;
-  font-size: clamp(1.2rem, 1.8vw, 2rem);
-}
-
-.visual-reel small {
-  display: block;
-  max-width: 32rem;
-  color: var(--muted);
-  font: 400 0.59rem/1.55 var(--mono);
-}
-
 /* ABOUT */
 .about-section {
   min-height: 150svh;
@@ -2743,7 +2575,6 @@ canvas {
 }
 
 @supports (content-visibility: auto) {
-  .visual-lab,
   .about-section,
   .contact-section {
     content-visibility: auto;
@@ -2754,15 +2585,6 @@ canvas {
 @media (max-width: 1050px) {
   .project-tile {
     grid-template-columns: minmax(0, 1.1fr) minmax(17rem, 0.9fr);
-  }
-
-  .visual-lab__head {
-    grid-template-columns: 1fr;
-  }
-
-  .visual-lab__head > p {
-    width: min(100%, 34rem);
-    margin-left: auto;
   }
 
   .discipline-grid {
@@ -2935,24 +2757,6 @@ canvas {
   .schematic-callout strong { font-size: 0.47rem; }
   .schematic-callout small { font-size: 0.42rem; }
   .schematic-object { width: 48%; }
-
-  .visual-lab {
-    padding: 4rem 1rem 7rem;
-  }
-
-  .visual-lab__head h2 {
-    font-size: clamp(3.7rem, 16vw, 6rem);
-  }
-
-  .visual-lab__reels {
-    padding: 0;
-    background: transparent;
-  }
-
-  .visual-reel {
-    margin-bottom: 1px;
-    border: 1px solid var(--line);
-  }
 
   .about-metrics {
     grid-template-columns: 1fr;

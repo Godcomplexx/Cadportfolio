@@ -12,10 +12,8 @@ import {
   projectIndex,
   projectTracks,
   toolGroups,
-  visualReels,
   type Project,
   type ProjectDraft,
-  type VisualReel,
 } from "@/lib/projects";
 
 const cvUrl =
@@ -111,7 +109,7 @@ function HudGlitch({ text }: { text: string }) {
 const CAROUSEL_INTERVAL_MS = 3200;
 
 /**
- * Advancing-slide state shared by the project and visual-lab carousels: which
+ * Advancing-slide state used by the project carousel: which
  * slide is showing, a manual jump, and the hold timer that pauses on hover.
  */
 function useCarousel(length: number) {
@@ -604,118 +602,6 @@ function DraftCard({ draft }: { draft: ProjectDraft }) {
   );
 }
 
-function VisualReelPanel({ reel }: { reel: VisualReel }) {
-  const { studies } = reel;
-  const { index, go, holdProps } = useCarousel(studies.length);
-
-  if (!studies.length) return null;
-  const active = studies[index];
-
-  return (
-    <article
-      className="visual-reel"
-      id={`visual-lab-${active.key}`}
-      data-reveal="block"
-      {...holdProps}
-      aria-roledescription="carousel"
-      aria-label={`${reel.label} — ${studies.length} studies`}
-    >
-      <div className="visual-reel__frame">
-        <div className="visual-reel__media">
-          {studies.map((study, studyIndex) => (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              key={study.key}
-              src={study.image.src}
-              alt={study.image.alt}
-              width={study.image.width}
-              height={study.image.height}
-              /* Only the opening frame of each reel is worth fetching up front. */
-              loading={studyIndex === 0 ? "eager" : "lazy"}
-              decoding="async"
-              className={
-                studyIndex === index
-                  ? "visual-reel__slide visual-reel__slide--active"
-                  : "visual-reel__slide"
-              }
-              aria-hidden={studyIndex === index ? undefined : true}
-            />
-          ))}
-
-          {studies.length > 1 ? (
-            <>
-              <button
-                type="button"
-                className="project-carousel__arrow project-carousel__arrow--prev"
-                onClick={() => go(index - 1)}
-                aria-label="Previous study"
-              >
-                <span aria-hidden="true">‹</span>
-              </button>
-              <button
-                type="button"
-                className="project-carousel__arrow project-carousel__arrow--next"
-                onClick={() => go(index + 1)}
-                aria-label="Next study"
-              >
-                <span aria-hidden="true">›</span>
-              </button>
-
-              <span className="project-carousel__dots">
-                {studies.map((study, dotIndex) => (
-                  <button
-                    key={study.key}
-                    type="button"
-                    className={
-                      dotIndex === index
-                        ? "project-carousel__dot project-carousel__dot--active"
-                        : "project-carousel__dot"
-                    }
-                    onClick={() => go(dotIndex)}
-                    aria-label={`Study ${dotIndex + 1} of ${studies.length}`}
-                    aria-current={dotIndex === index ? "true" : undefined}
-                  />
-                ))}
-              </span>
-            </>
-          ) : null}
-        </div>
-      </div>
-
-      {/* The copy swaps with the slide, so the caption always matches the
-          image on screen. */}
-      <div className="visual-study__copy">
-        <p>{active.number} / {active.discipline}</p>
-        <h3>{active.title}</h3>
-        <small>{active.description}</small>
-      </div>
-    </article>
-  );
-}
-
-function VisualLab() {
-  return (
-    <section className="visual-lab" id="visual-lab" aria-labelledby="visual-lab-title">
-      <header className="visual-lab__head">
-        <div>
-          <p className="section-kicker" data-reveal="line">Visual lab / selected studies</p>
-          <h2 id="visual-lab-title" data-reveal="text">FORM, LIGHT<br />AND MATERIAL</h2>
-        </div>
-        <p data-reveal="line">
-          A separate visual track for Blender, hard-surface form, materials and product imagery.
-          These studies support the engineering work without pretending to be validated products.
-        </p>
-      </header>
-
-      <div className="visual-lab__reels">
-        {visualReels.map((reel) => (
-          <VisualReelPanel key={reel.key} reel={reel} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
 export function PortfolioExperience() {
   const [activeSection, setActiveSection] = useState<SectionId>("top");
   const [isPastHero, setIsPastHero] = useState(false);
@@ -999,8 +885,6 @@ export function PortfolioExperience() {
           );
         })}
       </section>
-
-      <VisualLab />
 
       <div className="section-transition" aria-hidden="true" />
       <section className="scene about-section" id="about" aria-labelledby="about-title">

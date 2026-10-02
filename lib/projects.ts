@@ -156,26 +156,6 @@ export type ProjectIndexEntry = {
   external?: boolean;
 };
 
-export type VisualStudy = {
-  key: string;
-  number: string;
-  title: string;
-  discipline: string;
-  description: string;
-  image: ProjectImage;
-};
-
-/**
- * The visual lab is presented as two advancing panels rather than a flat grid,
- * so each study gets its own frame instead of a thumbnail. Studies are grouped
- * by subject: object-scale work on one side, spaces on the other.
- */
-export type VisualReel = {
-  key: string;
-  label: string;
-  studies: VisualStudy[];
-};
-
 export const projects: Project[] = [
   {
     key: "concussion-screener",
@@ -687,100 +667,6 @@ export const projectDrafts: ProjectDraft[] = [
     tools: ["XIAO ESP32-S3", "E-paper 3.7″", "Enclosure CAD"],
     imageNote: "Enclosure sketch + first render",
     source: { label: "Web version", href: "https://einkoracle.org/" },
-  },
-];
-
-export const visualStudies: VisualStudy[] = [
-  {
-    key: "handheld",
-    number: "05",
-    title: "Handheld Media Object",
-    discipline: "HARD-SURFACE / PRODUCT RENDER",
-    description:
-      "A stylized handheld device study focused on silhouette, controls, color blocking and presentation.",
-    image: {
-      src: publicPath("/media/visual-lab/handheld.webp"),
-      alt: "Stylized handheld media player render with a circular screen and physical controls.",
-      width: 1400,
-      height: 1400,
-    },
-  },
-  {
-    key: "procedural-object",
-    number: "V01",
-    title: "Organic Interface Study",
-    discipline: "FORM / TRANSPARENCY / CONTRAST",
-    description:
-      "A transparent enclosure and organic elements used to test depth, overlap and visual tension.",
-    image: {
-      src: publicPath("/media/visual-lab/procedural-object.webp"),
-      alt: "Transparent hard-surface object with dark organic tentacle-like forms passing through it.",
-      width: 1080,
-      height: 1080,
-    },
-  },
-  {
-    key: "glass",
-    number: "V02",
-    title: "Glass Material Study",
-    discipline: "MATERIAL / LIGHTING",
-    description:
-      "A controlled material study built around refraction, highlights and a restrained studio palette.",
-    image: {
-      src: publicPath("/media/visual-lab/glass.webp"),
-      alt: "Abstract glass object rendered with blue and magenta studio lighting.",
-      width: 1400,
-      height: 1400,
-    },
-  },
-  {
-    key: "interior",
-    number: "V03",
-    title: "Atmospheric Interior",
-    discipline: "SPACE / LIGHT / COMPOSITION",
-    description:
-      "An environment study balancing a long perspective, warm practical light and a cool ambient field.",
-    image: {
-      src: publicPath("/media/visual-lab/interior.webp"),
-      alt: "Long atmospheric interior hallway rendered with warm wall lights and a cool window glow.",
-      width: 1600,
-      height: 905,
-    },
-  },
-  {
-    key: "vending",
-    number: "V04",
-    title: "Vending Island",
-    discipline: "ENVIRONMENT / PRODUCT VISUALIZATION",
-    description:
-      "A compact commercial island explored as both a designed object and a small architectural scene.",
-    image: {
-      src: publicPath("/media/visual-lab/vending.webp"),
-      alt: "Isometric vending kiosk island rendered against a soft colored background.",
-      width: 1400,
-      height: 1400,
-    },
-  },
-];
-
-/**
- * Split so the two panels read as distinct tracks: designed objects and
- * materials on the left, inhabited space on the right.
- */
-export const visualReels: VisualReel[] = [
-  {
-    key: "objects",
-    label: "Objects / materials",
-    studies: visualStudies.filter((study) =>
-      ["handheld", "procedural-object", "glass"].includes(study.key),
-    ),
-  },
-  {
-    key: "spaces",
-    label: "Spaces / environments",
-    studies: visualStudies.filter((study) =>
-      ["interior", "vending"].includes(study.key),
-    ),
   },
 ];
 
