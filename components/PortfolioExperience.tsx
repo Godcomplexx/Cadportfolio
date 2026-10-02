@@ -411,102 +411,85 @@ function ProjectTile({
         <h4 className="project-tile__title" id={`project-title-${project.key}`} data-reveal="text">
           {project.key === "smartmotion" ? <><span>Smart</span><br /><span>Motion</span></> : project.shortTitle}
         </h4>
-        <p className="project-tile__strapline" data-reveal="line">
-          {project.strapline}
-        </p>
-
-        {/* The case reads as a maker story: what was wrong, what I decided to
-            build, how I built it, what works now and what it taught me. */}
-        <section className="case-chapter">
-          <CaseHeading number="01">The problem</CaseHeading>
-          <p className="case-chapter__lead" data-reveal="line">{project.problem}</p>
-        </section>
-
-        <section className="case-chapter">
-          <CaseHeading number="02">The idea</CaseHeading>
-          <p className="case-chapter__lead" data-reveal="line">{project.solution}</p>
-          {/* Scope and honest limits, so the idea never overclaims. */}
-          <p className="project-tile__overview" data-reveal="line">
-            {project.overview}
-          </p>
-          <dl className="project-tile__facts" data-reveal="block">
-            <div>
-              <dt>My role</dt>
-              <dd>
-                <ul>
-                  {project.role.map((item) => <li key={item}>{compactRole(item)}</li>)}
-                </ul>
-              </dd>
-            </div>
-          </dl>
-        </section>
-
-        <section className="case-chapter">
-          <CaseHeading number="03">How I built it</CaseHeading>
-          <ol className="project-tile__process" data-reveal="block">
-            {project.development.map((step, stepIndex) => (
-              <li key={step.title}>
-                <span aria-hidden="true">{String(stepIndex + 1).padStart(2, "0")}</span>
-                <div>
-                  <strong>{step.title}</strong>
-                  <p>{step.text}</p>
-                  {step.image ? (
-                    <figure className="project-tile__step-image">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={step.image.src}
-                        alt={step.image.alt}
-                        width={step.image.width}
-                        height={step.image.height}
-                        loading="lazy"
-                        decoding="async"
-                      />
-                      {step.image.label ? <figcaption>{step.image.label}</figcaption> : null}
-                    </figure>
-                  ) : null}
-                </div>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section className="case-chapter">
-          <CaseHeading number="04">The result</CaseHeading>
-          <p className="case-chapter__lead" data-reveal="line">{project.result}</p>
-          {/* Hard specification: concrete parts and measured numbers. */}
-          <dl className="project-tile__spec" data-reveal="block">
-            {project.details.map((detail) => (
-              <div key={detail.label}>
-                <dt>{detail.label}</dt>
-                <dd>{detail.value}</dd>
-              </div>
-            ))}
-          </dl>
-          <div className="project-tile__evidence" data-reveal="block">
-            <div>
-              <span>Verified</span>
-              <ul>
-                {project.evidence.verified.map((item) => <li key={item}>{item}</li>)}
-              </ul>
-            </div>
-            <div>
-              <span>Next proof</span>
-              <ul>
-                {project.evidence.next.map((item) => <li key={item}>{item}</li>)}
-              </ul>
-            </div>
+        {/* At a glance: the three lines a reviewer needs. Everything else
+            sits behind "Full story" so the page stays scannable. */}
+        <dl className="case-summary" data-reveal="block">
+          <div>
+            <dt><span>01</span> Problem</dt>
+            <dd>{project.problem}</dd>
           </div>
-        </section>
+          <div>
+            <dt><span>02</span> Idea</dt>
+            <dd>{project.solution}</dd>
+          </div>
+          <div>
+            <dt><span>03</span> Result</dt>
+            <dd>{project.result}</dd>
+          </div>
+        </dl>
 
-        <section className="case-chapter">
-          <CaseHeading number="05">What I learned</CaseHeading>
-          <ul className="case-learned" data-reveal="block">
-            {project.learned.map((item) => <li key={item}>{item}</li>)}
-          </ul>
-          <p className="case-next" data-reveal="line">
-            <span>Next →</span> {project.nextStep}
-          </p>
-        </section>
+        <dl className="project-tile__spec" data-reveal="block">
+          {project.details.slice(0, 4).map((detail) => (
+            <div key={detail.label}>
+              <dt>{detail.label}</dt>
+              <dd>{detail.value}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <details className="case-more">
+          <summary>
+            Full story <span aria-hidden="true">— process, role, lessons</span>
+          </summary>
+
+          <section className="case-chapter">
+            <CaseHeading number="A">How I built it</CaseHeading>
+            <ol className="project-tile__process">
+              {project.development.map((step, stepIndex) => (
+                <li key={step.title}>
+                  <span aria-hidden="true">{String(stepIndex + 1).padStart(2, "0")}</span>
+                  <div>
+                    <strong>{step.title}</strong>
+                    <p>{step.text}</p>
+                    {step.image ? (
+                      <figure className="project-tile__step-image">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={step.image.src}
+                          alt={step.image.alt}
+                          width={step.image.width}
+                          height={step.image.height}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        {step.image.label ? <figcaption>{step.image.label}</figcaption> : null}
+                      </figure>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          <section className="case-chapter">
+            <CaseHeading number="B">My role</CaseHeading>
+            <ul className="case-learned">
+              {project.role.map((item) => <li key={item}>{compactRole(item)}</li>)}
+            </ul>
+            {/* Scope and honest limits, so the case never overclaims. */}
+            <p className="project-tile__overview">{project.overview}</p>
+          </section>
+
+          <section className="case-chapter">
+            <CaseHeading number="C">What I learned</CaseHeading>
+            <ul className="case-learned">
+              {project.learned.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+            <p className="case-next">
+              <span>Next →</span> {project.nextStep}
+            </p>
+          </section>
+        </details>
 
         <footer className="project-tile__footer">
           {/* Full stack, not the first three: these are the exact keywords a
