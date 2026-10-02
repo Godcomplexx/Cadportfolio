@@ -12,10 +12,8 @@ import {
   projectIndex,
   projectTracks,
   toolGroups,
-  visualReels,
   type Project,
   type ProjectDraft,
-  type VisualReel,
 } from "@/lib/projects";
 
 const cvUrl =
@@ -111,7 +109,7 @@ function HudGlitch({ text }: { text: string }) {
 const CAROUSEL_INTERVAL_MS = 3200;
 
 /**
- * Advancing-slide state shared by the project and visual-lab carousels: which
+ * Advancing-slide state used by the project carousel: which
  * slide is showing, a manual jump, and the hold timer that pauses on hover.
  */
 function useCarousel(length: number) {
@@ -413,102 +411,85 @@ function ProjectTile({
         <h4 className="project-tile__title" id={`project-title-${project.key}`} data-reveal="text">
           {project.key === "smartmotion" ? <><span>Smart</span><br /><span>Motion</span></> : project.shortTitle}
         </h4>
-        <p className="project-tile__strapline" data-reveal="line">
-          {project.strapline}
-        </p>
-
-        {/* The case reads as a maker story: what was wrong, what I decided to
-            build, how I built it, what works now and what it taught me. */}
-        <section className="case-chapter">
-          <CaseHeading number="01">The problem</CaseHeading>
-          <p className="case-chapter__lead" data-reveal="line">{project.problem}</p>
-        </section>
-
-        <section className="case-chapter">
-          <CaseHeading number="02">The idea</CaseHeading>
-          <p className="case-chapter__lead" data-reveal="line">{project.solution}</p>
-          {/* Scope and honest limits, so the idea never overclaims. */}
-          <p className="project-tile__overview" data-reveal="line">
-            {project.overview}
-          </p>
-          <dl className="project-tile__facts" data-reveal="block">
-            <div>
-              <dt>My role</dt>
-              <dd>
-                <ul>
-                  {project.role.map((item) => <li key={item}>{compactRole(item)}</li>)}
-                </ul>
-              </dd>
-            </div>
-          </dl>
-        </section>
-
-        <section className="case-chapter">
-          <CaseHeading number="03">How I built it</CaseHeading>
-          <ol className="project-tile__process" data-reveal="block">
-            {project.development.map((step, stepIndex) => (
-              <li key={step.title}>
-                <span aria-hidden="true">{String(stepIndex + 1).padStart(2, "0")}</span>
-                <div>
-                  <strong>{step.title}</strong>
-                  <p>{step.text}</p>
-                  {step.image ? (
-                    <figure className="project-tile__step-image">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={step.image.src}
-                        alt={step.image.alt}
-                        width={step.image.width}
-                        height={step.image.height}
-                        loading="lazy"
-                        decoding="async"
-                      />
-                      {step.image.label ? <figcaption>{step.image.label}</figcaption> : null}
-                    </figure>
-                  ) : null}
-                </div>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section className="case-chapter">
-          <CaseHeading number="04">The result</CaseHeading>
-          <p className="case-chapter__lead" data-reveal="line">{project.result}</p>
-          {/* Hard specification: concrete parts and measured numbers. */}
-          <dl className="project-tile__spec" data-reveal="block">
-            {project.details.map((detail) => (
-              <div key={detail.label}>
-                <dt>{detail.label}</dt>
-                <dd>{detail.value}</dd>
-              </div>
-            ))}
-          </dl>
-          <div className="project-tile__evidence" data-reveal="block">
-            <div>
-              <span>Verified</span>
-              <ul>
-                {project.evidence.verified.map((item) => <li key={item}>{item}</li>)}
-              </ul>
-            </div>
-            <div>
-              <span>Next proof</span>
-              <ul>
-                {project.evidence.next.map((item) => <li key={item}>{item}</li>)}
-              </ul>
-            </div>
+        {/* At a glance: the three lines a reviewer needs. Everything else
+            sits behind "Full story" so the page stays scannable. */}
+        <dl className="case-summary" data-reveal="block">
+          <div>
+            <dt><span>01</span> Problem</dt>
+            <dd>{project.problem}</dd>
           </div>
-        </section>
+          <div>
+            <dt><span>02</span> Idea</dt>
+            <dd>{project.solution}</dd>
+          </div>
+          <div>
+            <dt><span>03</span> Result</dt>
+            <dd>{project.result}</dd>
+          </div>
+        </dl>
 
-        <section className="case-chapter">
-          <CaseHeading number="05">What I learned</CaseHeading>
-          <ul className="case-learned" data-reveal="block">
-            {project.learned.map((item) => <li key={item}>{item}</li>)}
-          </ul>
-          <p className="case-next" data-reveal="line">
-            <span>Next →</span> {project.nextStep}
-          </p>
-        </section>
+        <dl className="project-tile__spec" data-reveal="block">
+          {project.details.slice(0, 4).map((detail) => (
+            <div key={detail.label}>
+              <dt>{detail.label}</dt>
+              <dd>{detail.value}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <details className="case-more">
+          <summary>
+            Full story <span aria-hidden="true">— process, role, lessons</span>
+          </summary>
+
+          <section className="case-chapter">
+            <CaseHeading number="A">How I built it</CaseHeading>
+            <ol className="project-tile__process">
+              {project.development.map((step, stepIndex) => (
+                <li key={step.title}>
+                  <span aria-hidden="true">{String(stepIndex + 1).padStart(2, "0")}</span>
+                  <div>
+                    <strong>{step.title}</strong>
+                    <p>{step.text}</p>
+                    {step.image ? (
+                      <figure className="project-tile__step-image">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={step.image.src}
+                          alt={step.image.alt}
+                          width={step.image.width}
+                          height={step.image.height}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        {step.image.label ? <figcaption>{step.image.label}</figcaption> : null}
+                      </figure>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          <section className="case-chapter">
+            <CaseHeading number="B">My role</CaseHeading>
+            <ul className="case-learned">
+              {project.role.map((item) => <li key={item}>{compactRole(item)}</li>)}
+            </ul>
+            {/* Scope and honest limits, so the case never overclaims. */}
+            <p className="project-tile__overview">{project.overview}</p>
+          </section>
+
+          <section className="case-chapter">
+            <CaseHeading number="C">What I learned</CaseHeading>
+            <ul className="case-learned">
+              {project.learned.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+            <p className="case-next">
+              <span>Next →</span> {project.nextStep}
+            </p>
+          </section>
+        </details>
 
         <footer className="project-tile__footer">
           {/* Full stack, not the first three: these are the exact keywords a
@@ -601,118 +582,6 @@ function DraftCard({ draft }: { draft: ProjectDraft }) {
         </footer>
       </div>
     </article>
-  );
-}
-
-function VisualReelPanel({ reel }: { reel: VisualReel }) {
-  const { studies } = reel;
-  const { index, go, holdProps } = useCarousel(studies.length);
-
-  if (!studies.length) return null;
-  const active = studies[index];
-
-  return (
-    <article
-      className="visual-reel"
-      id={`visual-lab-${active.key}`}
-      data-reveal="block"
-      {...holdProps}
-      aria-roledescription="carousel"
-      aria-label={`${reel.label} — ${studies.length} studies`}
-    >
-      <div className="visual-reel__frame">
-        <div className="visual-reel__media">
-          {studies.map((study, studyIndex) => (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              key={study.key}
-              src={study.image.src}
-              alt={study.image.alt}
-              width={study.image.width}
-              height={study.image.height}
-              /* Only the opening frame of each reel is worth fetching up front. */
-              loading={studyIndex === 0 ? "eager" : "lazy"}
-              decoding="async"
-              className={
-                studyIndex === index
-                  ? "visual-reel__slide visual-reel__slide--active"
-                  : "visual-reel__slide"
-              }
-              aria-hidden={studyIndex === index ? undefined : true}
-            />
-          ))}
-
-          {studies.length > 1 ? (
-            <>
-              <button
-                type="button"
-                className="project-carousel__arrow project-carousel__arrow--prev"
-                onClick={() => go(index - 1)}
-                aria-label="Previous study"
-              >
-                <span aria-hidden="true">‹</span>
-              </button>
-              <button
-                type="button"
-                className="project-carousel__arrow project-carousel__arrow--next"
-                onClick={() => go(index + 1)}
-                aria-label="Next study"
-              >
-                <span aria-hidden="true">›</span>
-              </button>
-
-              <span className="project-carousel__dots">
-                {studies.map((study, dotIndex) => (
-                  <button
-                    key={study.key}
-                    type="button"
-                    className={
-                      dotIndex === index
-                        ? "project-carousel__dot project-carousel__dot--active"
-                        : "project-carousel__dot"
-                    }
-                    onClick={() => go(dotIndex)}
-                    aria-label={`Study ${dotIndex + 1} of ${studies.length}`}
-                    aria-current={dotIndex === index ? "true" : undefined}
-                  />
-                ))}
-              </span>
-            </>
-          ) : null}
-        </div>
-      </div>
-
-      {/* The copy swaps with the slide, so the caption always matches the
-          image on screen. */}
-      <div className="visual-study__copy">
-        <p>{active.number} / {active.discipline}</p>
-        <h3>{active.title}</h3>
-        <small>{active.description}</small>
-      </div>
-    </article>
-  );
-}
-
-function VisualLab() {
-  return (
-    <section className="visual-lab" id="visual-lab" aria-labelledby="visual-lab-title">
-      <header className="visual-lab__head">
-        <div>
-          <p className="section-kicker" data-reveal="line">Visual lab / selected studies</p>
-          <h2 id="visual-lab-title" data-reveal="text">FORM, LIGHT<br />AND MATERIAL</h2>
-        </div>
-        <p data-reveal="line">
-          A separate visual track for Blender, hard-surface form, materials and product imagery.
-          These studies support the engineering work without pretending to be validated products.
-        </p>
-      </header>
-
-      <div className="visual-lab__reels">
-        {visualReels.map((reel) => (
-          <VisualReelPanel key={reel.key} reel={reel} />
-        ))}
-      </div>
-    </section>
   );
 }
 
@@ -999,8 +868,6 @@ export function PortfolioExperience() {
           );
         })}
       </section>
-
-      <VisualLab />
 
       <div className="section-transition" aria-hidden="true" />
       <section className="scene about-section" id="about" aria-labelledby="about-title">

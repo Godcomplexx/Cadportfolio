@@ -156,26 +156,6 @@ export type ProjectIndexEntry = {
   external?: boolean;
 };
 
-export type VisualStudy = {
-  key: string;
-  number: string;
-  title: string;
-  discipline: string;
-  description: string;
-  image: ProjectImage;
-};
-
-/**
- * The visual lab is presented as two advancing panels rather than a flat grid,
- * so each study gets its own frame instead of a thumbnail. Studies are grouped
- * by subject: object-scale work on one side, spaces on the other.
- */
-export type VisualReel = {
-  key: string;
-  label: string;
-  studies: VisualStudy[];
-};
-
 export const projects: Project[] = [
   {
     key: "concussion-screener",
@@ -191,9 +171,9 @@ export const projects: Project[] = [
     status: "Working prototype",
     tools: ["Orange Pi", "IR camera", "OpenCV", "PyTorch", "scikit-learn", "3D printing"],
     problem:
-      "Concussion is still judged largely by eye: clinician observation, self-reporting and paper tests such as SCAT5 or King-Devick. They are slow, subjective and rarely available on a sports sideline or in the field — exactly where the first decision has to be made.",
+      "Concussion checks are slow and subjective — and rarely available on the sideline, where the first call is made.",
     solution:
-      "A self-contained eyepiece device. The person looks in and presses one button; an IR camera records pupil reflex, fixation and eye movement for about a minute, five on-device models classify the patterns, and a green or red LED gives the screening result — no network and no clinician needed at the point of care.",
+      "Look into an eyepiece, press one button: an IR camera and five on-device models screen eye movement in a minute.",
     overview:
       "The capture protocol is fixed: a 3 s resting baseline, about 35 s of light flashes and 20 s of fixation. Every session is stored for later review. This is a screening prototype, not a certified diagnostic device.",
     role: [
@@ -240,7 +220,7 @@ export const projects: Project[] = [
       { label: "Network", value: "None — fully offline" },
     ],
     result:
-      "A working, fully autonomous prototype: real-time inference on an ARM single-board computer, all five models validated with stratified k-fold cross-validation, and about 60 seconds from button press to result. The device is covered by a patent I co-authored.",
+      "Working offline prototype, ~60 s from button to result. Co-authored patent.",
     learned: [
       "Hardware starts from the measurement: the eyepiece, IR light and camera position exist to make one signal clean.",
       "A device for non-specialists needs one button and one unambiguous output — every extra state is a place to fail.",
@@ -290,9 +270,9 @@ export const projects: Project[] = [
     status: "Working prototype",
     tools: ["ESP32", "ST7789", "Sensors", "Audio", "C / C++"],
     problem:
-      "Most desk gadgets are either silent objects or one more screen asking for attention through a phone app. I wanted something in between: a small physical companion that notices touch, motion and the room, and answers with a face instead of notifications.",
+      "Desk gadgets are either silent or one more screen demanding attention through an app.",
     solution:
-      "An ESP32 desk companion with a 240 × 240 face display, a wheel and touch for input, motion and climate sensing, and a microphone-to-speaker audio path — all coordinated by one state-based interaction model, so every input produces a visible reaction on the device.",
+      "An ESP32 companion that reacts to touch, motion and the room with a face, not notifications.",
     overview:
       "CoPet Pilot combines a 240 × 240 display, wheel input, touch, motion, environmental sensing and audio in one working desk prototype. The current build proves the electronics, firmware and interaction system. A custom PCB and integrated enclosure are the next product-development stage, so neither is presented here as finished.",
     role: [
@@ -328,7 +308,7 @@ export const projects: Project[] = [
       { label: "Validation", value: "322 host checks / 11 suites" },
     ],
     result:
-      "The assembled prototype runs the interface, reacts to physical inputs and validates the core hardware and firmware integration.",
+      "Assembled prototype runs the full interface; 322 host checks pass.",
     learned: [
       "Bringing up one subsystem at a time, backed by host-side tests, made the final integration predictable.",
       "An open build is the best enclosure brief: it shows the real cable runs, component heights and service points before any CAD.",
@@ -368,9 +348,9 @@ export const projects: Project[] = [
     status: "Working prototype",
     tools: ["ESP-IDF", "ESP32-C3", "MPU-6050", "OLED", "BLE", "Android"],
     problem:
-      "A keychain is the object you carry everywhere and never look at. Could something pocket-sized react to how it is moved — and spend the rest of its time asleep, so a tiny battery lasts?",
+      "A keychain goes everywhere but does nothing — could it react to movement and still last on a tiny battery?",
     solution:
-      "An ESP32-C3 keychain with a 0.96″ OLED and an MPU-6050. It shows a fluid animation that follows tilt, sleeps when still, wakes when picked up, tells the time synced over BLE from an Android app, and turns into a tilt-controlled game after a triple shake.",
+      "An ESP32-C3 keychain with OLED and motion sensor: animates on tilt, sleeps when still, plays a tilt game.",
     overview:
       "SmartMotion is a compact object that reacts to movement, sleeps when still, wakes when picked up and becomes a tilt-controlled game. The firmware, companion app and electronics work together; the current enclosure image communicates the product direction, while enclosure integration remains in development.",
     role: [
@@ -406,7 +386,7 @@ export const projects: Project[] = [
       { label: "Connectivity", value: "On-demand BLE GATT" },
     ],
     result:
-      "The firmware, companion app and electronics operate as a connected prototype with motion input, a playable interface and low-power states.",
+      "Firmware, electronics and Android app work together; enclosure is the next pass.",
     learned: [
       "Designing the behaviour before the shell kept the form honest — the modes defined what the object had to be.",
       "Low power is a product feature: using the motion sensor as the wake source shaped both firmware and wiring.",
@@ -446,9 +426,9 @@ export const projects: Project[] = [
     status: "Documented study",
     tools: ["SolidWorks", "Part modeling", "Assemblies", "Drawings", "Design intent"],
     problem:
-      "I could model shapes, but not documentation someone else could manufacture from. I needed a disciplined foundation: design intent that survives edits, assemblies held together by constraints, and drawings linked to the model.",
+      "I could model shapes, but not documentation someone else could manufacture from.",
     solution:
-      "A structured SolidWorks practice of 32 native documents — 16 parametric parts, 8 constrained assemblies and 8 linked drawings — where each exercise targets one skill: patterns, configurations, mates, section and detail views.",
+      "A structured SolidWorks practice: parametric parts, constrained assemblies, linked drawings.",
     overview:
       "This is a real SolidWorks study archive, not a placeholder concept. It contains 32 native CAD documents: 16 parts, 8 assemblies and 8 drawings. The work covers parametric features, patterns, configurations, mating, section views and drawing layouts; the case presents it honestly as mechanical foundations rather than manufacturing validation.",
     role: [
@@ -484,7 +464,7 @@ export const projects: Project[] = [
       { label: "Archive", value: "32 editable CAD documents" },
     ],
     result:
-      "The archive demonstrates a complete beginner-to-intermediate SolidWorks workflow across editable parts, assemblies and linked drawings.",
+      "32 native documents: 16 parts, 8 assemblies, 8 drawings.",
     learned: [
       "Design intent is decided in the first sketch: dimensioning to function makes later changes cheap.",
       "Assemblies expose mistakes that single parts hide — mates are a test of the geometry.",
@@ -552,9 +532,9 @@ export const projects: Project[] = [
     status: "Concept",
     tools: ["Blender", "Plasticity", "Lighting", "Animation", "Compositing"],
     problem:
-      "Wearable neurotech is hard to explain: the important parts are inside, and the electrode contact disappears once the device is worn. A spec list does not show how the object is actually built.",
+      "Wearable neurotech is hard to explain — the important parts are hidden inside.",
     solution:
-      "A 26-second vertical product film that moves from the assembled earpiece to an exploded view — shell, contact layer, electronics stack — so the construction reads as one continuous sequence.",
+      "A 26-second film that explodes the earpiece layer by layer: shell, contacts, electronics.",
     overview:
       "This case focuses on communication: how external form, contact interface and an intended internal stack can be explained in one concise visual sequence. It is a visualization concept, not a validated medical device or a mechanical proof case.",
     role: ["I developed the visual direction and enclosure concept."],
@@ -585,7 +565,7 @@ export const projects: Project[] = [
       { label: "Output", value: "H.264" },
     ],
     result:
-      "The work defines a concise visual language for a technically informed wearable concept without presenting it as a tested device.",
+      "A clear visual language for the concept — presented as a concept, not a tested device.",
     learned: [
       "An exploded view needs an order: the sequence of separation is itself the explanation.",
       "Restrained materials and lighting keep attention on construction rather than surface.",
@@ -636,9 +616,9 @@ export const projectDrafts: ProjectDraft[] = [
     year: "2026",
     status: "Case study in progress",
     problem:
-      "Cognitive screening such as MoCA and HADS depends on a specialist to read every task aloud, score the answers and track change between sessions.",
+      "Cognitive tests like MoCA need a specialist to read, score and track every session.",
     solution:
-      "A local, voice-driven app: 11 spoken MoCA tasks recognised with GigaAM and scored automatically, a four-domain cognitive profile that shapes the training session, pulse from camera video and a local AI assistant — with separate, explicit consent for any recording.",
+      "A local voice app that runs and scores MoCA automatically, with explicit consent for recordings.",
     tools: ["Python", "GigaAM", "Ollama", "OpenCV", "rPPG"],
     imageNote: "Screens: voice test flow + cognitive profile",
     source: { label: "Source", href: "https://github.com/Godcomplexx/nero_mirro" },
@@ -651,9 +631,9 @@ export const projectDrafts: ProjectDraft[] = [
     year: "2026",
     status: "Case study in progress",
     problem:
-      "Fine motor skills of the hand are usually assessed by eye, which makes small changes between sessions hard to notice and harder to prove.",
+      "Hand fine-motor skills are judged by eye, so small changes go unnoticed.",
     solution:
-      "A webcam test module: MediaPipe tracks 21 hand landmarks, calibrates on an open palm, runs a series of exercises and turns them into a readiness index. Ultraleap is supported as a second tracker.",
+      "A webcam test: MediaPipe tracks 21 hand points and turns exercises into a readiness score.",
     tools: ["Python", "MediaPipe", "OpenCV", "Ultraleap"],
     imageNote: "Photo: hand skeleton overlay during a test",
     source: { label: "Source", href: "https://github.com/Godcomplexx/Finger_GYM" },
@@ -666,9 +646,9 @@ export const projectDrafts: ProjectDraft[] = [
     year: "2026",
     status: "Experiment",
     problem:
-      "Putting a new picture on a small display usually means a cable, a radio module and firmware on the device side.",
+      "Updating a small display usually needs a cable, a radio and device firmware.",
     solution:
-      "A web page that converts any image to 128 × 64 monochrome and writes it straight to an ST25DV16K NFC tag from an Android phone using Web NFC.",
+      "Tap a phone: a web page converts an image and writes it to an NFC-powered OLED.",
     tools: ["Web NFC", "ST25DV16K", "OLED 128 × 64", "JavaScript"],
     imageNote: "Photo: phone tapping the display, before / after",
     source: { label: "Source", href: "https://github.com/Godcomplexx/nfc_harvest_test" },
@@ -681,106 +661,12 @@ export const projectDrafts: ProjectDraft[] = [
     year: "2026",
     status: "Concept · web version live",
     problem:
-      "Every screen at home is an endless feed. I wanted an object that gives exactly one image and one message a day — and then stops.",
+      "Every screen at home is an endless feed.",
     solution:
-      "A single-purpose e-ink object: XIAO ESP32-S3, a 3.7″ e-paper display, one draw button, a battery and a custom enclosure, driven by a weighted card graph. The web version already runs online.",
+      "An e-ink object with one button: one image, one message a day, then it stops.",
     tools: ["XIAO ESP32-S3", "E-paper 3.7″", "Enclosure CAD"],
     imageNote: "Enclosure sketch + first render",
     source: { label: "Web version", href: "https://einkoracle.org/" },
-  },
-];
-
-export const visualStudies: VisualStudy[] = [
-  {
-    key: "handheld",
-    number: "05",
-    title: "Handheld Media Object",
-    discipline: "HARD-SURFACE / PRODUCT RENDER",
-    description:
-      "A stylized handheld device study focused on silhouette, controls, color blocking and presentation.",
-    image: {
-      src: publicPath("/media/visual-lab/handheld.webp"),
-      alt: "Stylized handheld media player render with a circular screen and physical controls.",
-      width: 1400,
-      height: 1400,
-    },
-  },
-  {
-    key: "procedural-object",
-    number: "V01",
-    title: "Organic Interface Study",
-    discipline: "FORM / TRANSPARENCY / CONTRAST",
-    description:
-      "A transparent enclosure and organic elements used to test depth, overlap and visual tension.",
-    image: {
-      src: publicPath("/media/visual-lab/procedural-object.webp"),
-      alt: "Transparent hard-surface object with dark organic tentacle-like forms passing through it.",
-      width: 1080,
-      height: 1080,
-    },
-  },
-  {
-    key: "glass",
-    number: "V02",
-    title: "Glass Material Study",
-    discipline: "MATERIAL / LIGHTING",
-    description:
-      "A controlled material study built around refraction, highlights and a restrained studio palette.",
-    image: {
-      src: publicPath("/media/visual-lab/glass.webp"),
-      alt: "Abstract glass object rendered with blue and magenta studio lighting.",
-      width: 1400,
-      height: 1400,
-    },
-  },
-  {
-    key: "interior",
-    number: "V03",
-    title: "Atmospheric Interior",
-    discipline: "SPACE / LIGHT / COMPOSITION",
-    description:
-      "An environment study balancing a long perspective, warm practical light and a cool ambient field.",
-    image: {
-      src: publicPath("/media/visual-lab/interior.webp"),
-      alt: "Long atmospheric interior hallway rendered with warm wall lights and a cool window glow.",
-      width: 1600,
-      height: 905,
-    },
-  },
-  {
-    key: "vending",
-    number: "V04",
-    title: "Vending Island",
-    discipline: "ENVIRONMENT / PRODUCT VISUALIZATION",
-    description:
-      "A compact commercial island explored as both a designed object and a small architectural scene.",
-    image: {
-      src: publicPath("/media/visual-lab/vending.webp"),
-      alt: "Isometric vending kiosk island rendered against a soft colored background.",
-      width: 1400,
-      height: 1400,
-    },
-  },
-];
-
-/**
- * Split so the two panels read as distinct tracks: designed objects and
- * materials on the left, inhabited space on the right.
- */
-export const visualReels: VisualReel[] = [
-  {
-    key: "objects",
-    label: "Objects / materials",
-    studies: visualStudies.filter((study) =>
-      ["handheld", "procedural-object", "glass"].includes(study.key),
-    ),
-  },
-  {
-    key: "spaces",
-    label: "Spaces / environments",
-    studies: visualStudies.filter((study) =>
-      ["interior", "vending"].includes(study.key),
-    ),
   },
 ];
 
